@@ -9,7 +9,8 @@ describe Syntaks do
 
     source = Syntaks::Source.new("[190,500]")
     state = Syntaks::ParseState.new(source)
-    res = parser.call(state)
-    assert res.success?
+    res = parser.call(state) as Syntaks::ParseSuccess
+
+    puts res.node.to_s(0)
   end
 end

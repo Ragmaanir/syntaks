@@ -58,7 +58,7 @@ module Syntaks
       results = call_children(state)
 
       if results.length == @seq.length
-        nodes = results.map{ |r| r.node }
+        nodes = results.map{ |r| r.node as Node }
 
         node = @block.call(nodes) as T
         succeed(state, SourceInterval.new(state.source, at, state.at-at), node)

@@ -10,23 +10,30 @@ module Syntaks
       with self yield self
     end
 
-    class Root < Node
+    class Root < InnerNode
       def initialize(@args : Arguments)
+        @children = [@args]
       end
     end
 
-    class Arguments < Node
+    class Arguments < InnerNode
       def initialize(@children : Array(Node))
       end
     end
 
-    class Argument < Node
+    class Argument < InnerNode
       def initialize(@lit : Literal)
+        @children = [@lit]
       end
     end
 
-    class Literal < Node
+    class Literal < TerminalNode
       def initialize(@state, @interval)
+      end
+
+      def to_s(depth : Int)
+        indent = "  " * depth
+        indent + self.class.name + "(#{@interval.to_s})"
       end
     end
 
