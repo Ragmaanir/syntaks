@@ -38,7 +38,7 @@ module Syntaks
 
     def root
       SequenceParser(Root).new([StringParser.new("["), args, StringParser.new("]")]) do |args|
-        Root.new(args[0] as Arguments)
+        Root.new(args[1] as Arguments)
       end
     end
 
