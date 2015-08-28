@@ -31,9 +31,8 @@ module Syntaks
       def initialize(@state, @interval)
       end
 
-      def to_s(depth : Int)
-        indent = "  " * depth
-        indent + self.class.name + "(#{@interval.to_s})"
+      private def internal_data
+        @interval.to_s
       end
     end
 
