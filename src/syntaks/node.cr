@@ -10,8 +10,8 @@ module Syntaks
 
     def to_s(depth : Int)
       indent = "  " * depth
-      ch_s = children.map{ |c| "\n" + c.to_s(depth+1) + "\n#{indent}" }.join(",")
-      "#{indent}#{self.class}(#{ch_s})"
+      ch_s = children.map{ |c| c.to_s(depth+1) }.join(",\n")
+      "#{indent}#{self.class}(\n#{ch_s}\n#{indent})"
     end
   end
 
