@@ -18,9 +18,9 @@ module Syntaks
 
   class SourceInterval
 
-    getter :source, :from, :length
+    getter :from, :length
 
-    def initialize(@source : Source, @from, @length=0)
+    def initialize(@from : Int, @length=0 : Int)
     end
 
     def to
@@ -28,7 +28,7 @@ module Syntaks
     end
 
     def to_s
-      @source[@from, @length]
+      "SourceInterval(#{from},#{length})"
     end
   end
 

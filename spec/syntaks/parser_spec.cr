@@ -58,9 +58,9 @@ module ListParserSpec
 
       source = Syntaks::Source.new("[190,500,1337]")
       state = Syntaks::ParseState.new(source)
-      res = parser.call(state) as Syntaks::ParseSuccess
 
-      puts res.node.to_s(0)
+      res = parser.call(state)
+      assert res.success?
     end
 
     it "" do

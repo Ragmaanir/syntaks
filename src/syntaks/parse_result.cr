@@ -1,15 +1,21 @@
 module Syntaks
 
   abstract class ParseResult
-    getter :state, :interval, :parser
+    getter :state, :parser
 
-    abstract def success?
+    def initialize(@state : ParseState, @end_state : ParseState)
+    end
+
+    abstract def success? : Boolean
+    def interval : SourceInterval
+      SourceInterval.new(state.at, end_state.at)
+    end
   end
 
   class ParseSuccess < ParseResult
-    getter :node
+    getter :node, :end_state
 
-    def initialize(@state : ParseState, @interval : SourceInterval, @parser : Parser, @node : Node)
+    def initialize(@state : ParseState, @end_state : ParseState, @parser : Parser, @node : Node)
     end
 
     def success?
@@ -20,7 +26,7 @@ module Syntaks
   class ParseFailure < ParseResult
 
     def initialize(@state : ParseState, @parser : Parser)
-      @interval = SourceInterval.new(state.source, state.at, 0)
+      @end_state = @state
     end
 
     def success?

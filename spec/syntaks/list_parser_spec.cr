@@ -38,7 +38,7 @@ module ListParserSpec
 
       result = parser.call(state) as ParseSuccess
 
-      assert result.interval.to_s == "a,invalid"
+      assert result.interval.to_s == "SourceInterval(0,9)"
     end
   end
 

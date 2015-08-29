@@ -7,21 +7,25 @@ module Syntaks
     getter :source, :at
     getter :logger
 
-    def initialize(@source : Source, @at = 0, @logger = Logger.new(STDOUT))
+    def initialize(@source : Source, @at = 0 : Int, @logger = Logger.new(STDOUT))
       @logger.level = Logger::Severity::DEBUG
     end
 
     def interval(n : Int)
-      SourceInterval.new(source, at, n)
+      SourceInterval.new(at, n)
     end
 
     def forward(n : Int)
-      #ParseState.new(source, at + n)
-      @at += n
+      raise ArgumentError.new("n==0") if n == 0
+      ParseState.new(source, at + n, logger)
     end
 
     def to_s
       source[at..-1]
+    end
+
+    def inspect
+      "ParseState(#{at}, '#{source[at, 12]}...')"
     end
 
   end
@@ -29,9 +33,9 @@ module Syntaks
   abstract class Parser
     abstract def call(state : ParseState) : ParseResult
 
-    private def succeed(state, interval, node)
-      state.logger.debug "SUCCESS(#{self.to_s}): #{interval.to_s}"
-      ParseSuccess.new(state, interval, self, node)
+    private def succeed(state, end_state, node)
+      state.logger.debug "SUCCESS(#{self.to_s}): #{end_state.inspect}"
+      ParseSuccess.new(state, end_state, self, node)
     end
 
     private def fail(state)
@@ -40,7 +44,7 @@ module Syntaks
     end
 
     def to_s
-      self.class.name
+      self.class.name.split("::").last
     end
   end
 
