@@ -102,23 +102,25 @@ module Syntaks
     def initialize(@parser, @seperator_parser)
     end
 
-    def call(state)
+    def call(state) : ParseResult
       at = state.at
 
       case res = @parser.call(state)
       when ParseSuccess
         results = [res] + parse_tail(state)
-        children = results.map{ |r| r.node }
+
+        children = results.map{ |r| r.node as Node }
 
         node = T.new(children)
 
-        succeed(state, SourceInterval.new(state.source, at, state.at - at), node)
+        return succeed(state, SourceInterval.new(state.source, at, state.at - at), node)
       when ParseFailure
-        fail(state)
+        return fail(state)
+      else raise "Unknown parse result"
       end
     end
 
-    private def parse_tail(state)
+    private def parse_tail(state) : Array(ParseSuccess)
       success = true
       results = [] of ParseSuccess
 
@@ -133,6 +135,7 @@ module Syntaks
 
       results
     end
+
   end
 
 end

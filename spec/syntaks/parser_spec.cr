@@ -56,11 +56,29 @@ module ListParserSpec
     it "" do
       parser = ListParser.new.root
 
-      source = Syntaks::Source.new("[190,500]")
+      source = Syntaks::Source.new("[190,500,1337]")
       state = Syntaks::ParseState.new(source)
       res = parser.call(state) as Syntaks::ParseSuccess
 
       puts res.node.to_s(0)
+    end
+
+    it "" do
+      parser = ListParser.new.root
+
+      source = Syntaks::Source.new("[1,]")
+      state = Syntaks::ParseState.new(source)
+
+      assert !parser.call(state).success?
+    end
+
+    it "" do
+      parser = ListParser.new.root
+
+      source = Syntaks::Source.new("[1,,]")
+      state = Syntaks::ParseState.new(source)
+
+      assert !parser.call(state).success?
     end
   end
 
