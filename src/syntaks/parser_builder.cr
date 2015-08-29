@@ -10,57 +10,11 @@ module Syntaks
       with self yield self
     end
 
-    class Root < InnerNode
-      def initialize(@args : Arguments)
-        @children = [@args]
-      end
-    end
-
-    class Arguments < InnerNode
-      def initialize(@children : Array(Node))
-      end
-    end
-
-    class Argument < InnerNode
-      def initialize(@lit : Literal)
-        @children = [@lit]
-      end
-    end
-
-    class Literal < TerminalNode
-      def initialize(@state, @interval)
-      end
-
-      private def internal_data
-        @interval.to_s
-      end
-    end
-
     # def root
     #   SequenceParser({Literal}, Root).new({"[", literal, "]"}) do |args|
     #     Root.new(args[0])
     #   end
     # end
-
-    def root
-      SequenceParser(Root).new([StringParser.new("["), args, StringParser.new("]")]) do |args|
-        Root.new(args[1] as Arguments)
-      end
-    end
-
-    def args
-      ListParser(Arguments).new(arg, StringParser.new(","))
-    end
-
-    def arg
-      SequenceParser(Argument).new([literal]) do |args|
-        Argument.new(args[0] as Literal)
-      end
-    end
-
-    def literal
-      TokenParser(Literal).new(/[1-9][0-9]*/)
-    end
 
     # macro seq(t, *args)
     #   SequenceParser({{args.map{|n| p n}}}, {{t}}).new({{*args}}) do |tuple|
