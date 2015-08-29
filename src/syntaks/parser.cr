@@ -44,6 +44,10 @@ module Syntaks
     end
 
     def to_s
+      canonical_name
+    end
+
+    def canonical_name
       self.class.name.split("::").last
     end
   end

@@ -16,7 +16,7 @@ module Syntaks
     end
 
     def to_s
-      "#{self.class.name}(#{@string.inspect})"
+      "#{canonical_name}(#{@string.inspect})"
     end
   end
 
