@@ -5,7 +5,7 @@ module Syntaks
     end
 
     def call(state : ParseState) : ParseResult
-      if state.to_s.starts_with?(@string)
+      if state.remaining_text.starts_with?(@string)
         interval = state.interval(@string.length)
         end_state = state.forward(interval.length)
         node = IgnoredNode.new(state, interval)
@@ -29,9 +29,9 @@ module Syntaks
     def call(state : ParseState) : ParseResult
       parsed_text = case t = @token
       when String
-        t if state.to_s.starts_with?(t)
+        t if state.remaining_text.starts_with?(t)
       when Regex
-        if m = t.match(state.to_s)
+        if m = t.match(state.remaining_text)
           m[0]
         end
       end

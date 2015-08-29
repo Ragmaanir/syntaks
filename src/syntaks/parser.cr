@@ -20,7 +20,7 @@ module Syntaks
       ParseState.new(source, at + n, logger)
     end
 
-    def to_s
+    def remaining_text
       source[at..-1]
     end
 
