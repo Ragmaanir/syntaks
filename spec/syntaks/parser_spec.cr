@@ -1,9 +1,10 @@
 require "../spec_helper"
 
-module ListParserSpec
+module SyntaksSpec_Parser
 
   class ListParser
     include Syntaks
+    include Syntaks::Parsers
 
     class Root < InnerNode
       def initialize(@args : Arguments)

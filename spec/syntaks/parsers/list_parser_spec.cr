@@ -1,7 +1,8 @@
-require "../spec_helper"
+require "../../spec_helper"
 
-module ListParserSpec
+module SyntaksSpec_ListParser
   include Syntaks
+  include Syntaks::Parsers
 
   class ListNode < InnerNode
   end
@@ -22,7 +23,7 @@ module ListParserSpec
     )
   end
 
-  describe Syntaks::ListParser do
+  describe Syntaks::Parsers::ListParser do
     it "parses a list with multiple seperated items" do
       parser = list_parser
       source = Source.new("a,b,xyz")
