@@ -2,6 +2,10 @@ module Syntaks
   module Parsers
 
     class SequenceParser(T) < Parser
+      def initialize(@seq : Array(Parser))
+        @block = ->(args : Array(Node)) { T.new(args) }
+      end
+
       def initialize(@seq : Array(Parser), &@block : Array(Node) -> T)
       end
 

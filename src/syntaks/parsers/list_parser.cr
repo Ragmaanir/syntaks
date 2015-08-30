@@ -2,8 +2,15 @@ module Syntaks
   module Parsers
 
     class ListParser(T) < Parser
-      def initialize(@parser : Parser, @seperator_parser : Parser)
-        @sequence = SequenceParser(Node).new([@seperator_parser, @parser]) do |args|
+      def initialize(@parser : Parser)
+        @sequence = SequenceParser(Node).new([@parser]) do |args|
+          args[0]
+        end
+      end
+
+      def initialize(@parser : Parser, seperator_parser : Parser)
+        @seperator_parser = seperator_parser
+        @sequence = SequenceParser(Node).new([seperator_parser, @parser]) do |args|
           args[1]
         end
       end
@@ -46,7 +53,11 @@ module Syntaks
       end
 
       def to_ebnf
-        "list(#{@parser.to_ebnf}, #{@seperator_parser.to_ebnf})"
+        if @seperator_parser
+          "list(#{@parser.to_ebnf})"
+        else
+          "list(#{@parser.to_ebnf}, #{@seperator_parser.to_ebnf})"
+        end
       end
 
     end
