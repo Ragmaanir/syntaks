@@ -27,6 +27,10 @@ module Syntaks
         end
       end
 
+      def to_ebnf
+        @token.inspect
+      end
+
     end
   end
 end

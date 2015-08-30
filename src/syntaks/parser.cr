@@ -35,7 +35,11 @@ module Syntaks
     abstract def call(state : ParseState) : ParseResult
 
     private def succeed(state, end_state, node)
-      state.logger.debug "SUCCESS(#{self.to_s}): #{end_state.inspect}"
+      diff = end_state.at - state.at
+      parsed_text = state.remaining_text[0, diff].colorize(:white).bold.on(:green)
+      remaining_text = end_state.remaining_text[0, 12].colorize(:white).on(:blue)
+
+      state.logger.debug "SUCCESS(#{self.to_s}): #{parsed_text}#{remaining_text}"
       ParseSuccess.new(state, end_state, self, node)
     end
 
@@ -49,8 +53,16 @@ module Syntaks
     end
 
     def canonical_name
-      self.class.name.split("::").last
+      if self.class.name.includes?("(")
+        if m = self.class.name.match(/.*::([a-zA-Z0-9]+\(.*)/)
+          m[1]
+        end
+      else
+        self.class.name.split("::").last
+      end
     end
+
+    abstract def to_ebnf : String
   end
 
 end

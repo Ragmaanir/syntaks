@@ -45,6 +45,10 @@ module Syntaks
         results
       end
 
+      def to_ebnf
+        "list(#{@parser.to_ebnf}, #{@seperator_parser.to_ebnf})"
+      end
+
     end
 
   end

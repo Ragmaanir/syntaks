@@ -15,5 +15,9 @@ module Syntaks
       end
     end
 
+    def to_ebnf
+      @parser.to_ebnf.surround("[", "]")
+    end
+
   end
 end

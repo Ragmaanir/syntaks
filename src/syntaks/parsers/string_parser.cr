@@ -19,6 +19,10 @@ module Syntaks
       def to_s
         "#{canonical_name}(#{@string.inspect})"
       end
+
+      def to_ebnf
+        @string.inspect
+      end
     end
 
   end

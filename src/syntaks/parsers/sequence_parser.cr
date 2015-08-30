@@ -38,6 +38,10 @@ module Syntaks
 
         results
       end
+
+      def to_ebnf
+        @seq.map{ |parser| parser.to_ebnf }.join(" ")
+      end
     end
 
   end
