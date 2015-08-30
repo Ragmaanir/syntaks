@@ -25,7 +25,8 @@ module Syntaks
     end
 
     def inspect
-      "ParseState(#{at}, '#{source[at, 12]}...')"
+      text = source[at, 12].colorize(:blue).bold.on(:dark_gray)
+      "ParseState(#{at}, #{text})"
     end
 
   end
