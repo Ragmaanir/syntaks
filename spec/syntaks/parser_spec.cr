@@ -2,9 +2,10 @@ require "../spec_helper"
 
 module SyntaksSpec_Parser
 
-  class ListParser
-    include Syntaks
-    include Syntaks::Parsers
+  include Syntaks
+  include Syntaks::Parsers
+
+  class TestParser
 
     class Root < InnerNode
       def initialize(@args : Arguments)
@@ -24,9 +25,6 @@ module SyntaksSpec_Parser
     end
 
     class Literal < TerminalNode
-      def initialize(@state, @interval)
-      end
-
       private def internal_data
         @interval.to_s
       end
@@ -55,7 +53,7 @@ module SyntaksSpec_Parser
 
   describe Syntaks::Parser do
     it "" do
-      parser = ListParser.new.root
+      parser = TestParser.new.root
 
       source = Syntaks::Source.new("[190,500,1337]")
       state = Syntaks::ParseState.new(source)
@@ -65,7 +63,7 @@ module SyntaksSpec_Parser
     end
 
     it "" do
-      parser = ListParser.new.root
+      parser = TestParser.new.root
 
       source = Syntaks::Source.new("[1,]")
       state = Syntaks::ParseState.new(source)
@@ -74,7 +72,7 @@ module SyntaksSpec_Parser
     end
 
     it "" do
-      parser = ListParser.new.root
+      parser = TestParser.new.root
 
       source = Syntaks::Source.new("[1,,]")
       state = Syntaks::ParseState.new(source)
@@ -83,4 +81,77 @@ module SyntaksSpec_Parser
     end
   end
 
+end
+
+module SyntaksSpec_RecursiveParsers
+  include Syntaks
+  include Syntaks::Parsers
+
+  class AddExp < InnerNode
+  end
+
+  class AddExpTail < InnerNode
+  end
+
+  class AddExpElem < InnerNode
+  end
+
+  class TerminalAddExp < InnerNode
+  end
+
+  class Literal < TerminalNode
+  end
+
+  class Operator < TerminalNode
+  end
+
+  def self.exp
+    add_exp
+  end
+
+  def self.add_exp
+    @@add_exp ||= ParserReference.new do
+      SequenceParser(AddExp).new([
+        terminal_add_exp,
+        ListParser(AddExpTail).new(
+          SequenceParser(AddExpElem).new([
+            TokenParser(Operator).new(/[+-]/),
+            terminal_add_exp
+          ])
+        )
+      ])
+    end
+  end
+
+  def self.terminal_add_exp
+    @@terminal_add_exp ||= ParserReference.new do
+      AlternativeParser.new([par_exp, literal])
+    end
+  end
+
+  def self.par_exp
+    @@par_exp ||= ParserReference.new do
+      SequenceParser(AddExp).new([
+        StringParser.new("("),
+        add_exp,
+        StringParser.new(")")
+      ])
+    end
+  end
+
+  def self.literal
+    TokenParser(Literal).new(/[1-9][0-9]*/)
+  end
+
+  describe Syntaks::Parser do
+    it "" do
+      parser = exp
+
+      source = Syntaks::Source.new("1+234")
+      state = Syntaks::ParseState.new(source)
+
+      res = parser.call(state)
+      assert res.success?
+    end
+  end
 end

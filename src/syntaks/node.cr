@@ -16,6 +16,9 @@ module Syntaks
   end
 
   abstract class TerminalNode < Node
+    def initialize(@state : ParseState, @interval : SourceInterval)
+    end
+
     def to_s(depth : Int)
       indent = "  " * depth
       indent + self.class.name + "(#{internal_data})"

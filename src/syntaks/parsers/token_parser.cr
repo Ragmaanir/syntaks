@@ -12,7 +12,7 @@ module Syntaks
         when String
           t if state.remaining_text.starts_with?(t)
         when Regex
-          if m = t.match(state.remaining_text)
+          if m = Regex.new("\\A"+t.source).match(state.remaining_text)
             m[0]
           end
         end
