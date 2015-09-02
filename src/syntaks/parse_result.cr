@@ -1,7 +1,7 @@
 module Syntaks
 
   abstract class ParseResult
-    getter :state, :parser
+    getter :state#, :parser
 
     def initialize(@state : ParseState, @end_state : ParseState)
     end
@@ -15,7 +15,7 @@ module Syntaks
   class ParseSuccess < ParseResult
     getter :node, :end_state
 
-    def initialize(@state : ParseState, @end_state : ParseState, @parser : Parser, @node : Node)
+    def initialize(@state : ParseState, @end_state : ParseState, parser : Parser, @node : Node)
     end
 
     def success?
@@ -25,7 +25,7 @@ module Syntaks
 
   class ParseFailure < ParseResult
 
-    def initialize(@state : ParseState, @parser : Parser)
+    def initialize(@state : ParseState, parser : Parser)
       @end_state = @state
     end
 
