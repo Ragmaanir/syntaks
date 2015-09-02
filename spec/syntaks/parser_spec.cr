@@ -153,5 +153,25 @@ module SyntaksSpec_RecursiveParsers
       res = parser.call(state)
       assert res.success?
     end
+
+    it "" do
+      parser = exp
+
+      source = Syntaks::Source.new("1+234+(1234-55)")
+      state = Syntaks::ParseState.new(source)
+
+      res = parser.call(state)
+      assert res.success?
+    end
+
+    pending "" do
+      parser = exp
+
+      source = Syntaks::Source.new("1+234+(1234-)")
+      state = Syntaks::ParseState.new(source)
+
+      res = parser.call(state)
+      assert !res.success?
+    end
   end
 end
