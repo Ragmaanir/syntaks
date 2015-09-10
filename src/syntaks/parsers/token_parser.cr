@@ -1,13 +1,26 @@
 module Syntaks
   module Parsers
 
-    class TokenParser(T) < Parser
+    class TokenParser(T) < Parser(T)
       getter :token
 
-      def initialize(@token : String | Regex)
+      # def self.new(token, action : String -> T)
+      #   TokenParser(T).new(token, action)
+      # end
+
+      def self.new(token)
+        TokenParser(String).new(token, ->(res : String){ res })
       end
 
-      def call(state : ParseState) : ParseResult
+      # def initialize(token : String | Regex)
+      #   initialize(token, ->(res : String){ res })
+      # end
+
+      def initialize(@token : String | Regex, @action : String -> T)
+      end
+
+      #def call(state : ParseState) : ParseResult(T)
+      def call(state : ParseState)
         parsed_text = case t = @token
         when String
           t if state.remaining_text.starts_with?(t)
@@ -18,10 +31,10 @@ module Syntaks
         end
 
         if parsed_text
-          interval = state.interval(parsed_text.length)
           end_state = state.forward(parsed_text.length)
-          node = T.new(state, interval)
-          succeed(state, end_state, node)
+          value :: T
+          value = @action.call(parsed_text)
+          succeed(state, end_state, value)
         else
           fail(state)
         end

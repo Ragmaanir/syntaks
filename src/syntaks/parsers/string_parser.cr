@@ -1,16 +1,14 @@
 module Syntaks
   module Parsers
 
-    class StringParser < Parser
+    class StringParser < Parser(Nil)
       def initialize(@string)
       end
 
       def call(state : ParseState) : ParseResult
         if state.remaining_text.starts_with?(@string)
-          interval = state.interval(@string.length)
-          end_state = state.forward(interval.length)
-          node = IgnoredNode.new(state, interval)
-          succeed(state, end_state, node)
+          end_state = state.forward(@string.length)
+          succeed(state, end_state)
         else
           fail(state)
         end

@@ -31,21 +31,21 @@ module Syntaks
 
   end
 
-  abstract class Parser
-    abstract def call(state : ParseState) : ParseResult
+  abstract class Parser(T)
+    abstract def call(state : ParseState) : (ParseSuccess(T) | ParseFailure)
 
-    private def succeed(state, end_state, node)
+    private def succeed(state, end_state, value : T)
       diff = end_state.at - state.at
       parsed_text = state.remaining_text[0, diff].colorize(:white).bold.on(:green)
       remaining_text = end_state.remaining_text[0, 12].colorize(:white).on(:blue)
 
       state.logger.debug "SUCCESS(#{self.to_s}): #{parsed_text}#{remaining_text}"
-      ParseSuccess.new(state, end_state, self, node)
+      ParseSuccess(T).new(self, state, end_state, value)
     end
 
     private def fail(state)
       state.logger.debug "FAIL(#{self.to_s}): #{state.at}"
-      ParseFailure.new(state, self)
+      ParseFailure.new(self, state)
     end
 
     def to_s

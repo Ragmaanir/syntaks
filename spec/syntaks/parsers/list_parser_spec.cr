@@ -1,100 +1,32 @@
 require "../../spec_helper"
 
-module SyntaksSpec_ListParser
-  include Syntaks
-  include Syntaks::Parsers
-
-  class ListNode < InnerNode
-  end
-
-  class TokenNode < TerminalNode
-    def initialize(@state, @interval)
+module ListParserTests
+  class AcceptanceTest < Minitest::Test
+    class TestParser < Syntaks::FullParser
+      def root
+        @root ||= ListParser({String, Int32}).new(
+          SequenceParser.new(
+            TokenParser.new(/[+-]/),
+            TokenParser.new(/[1-9][0-9]*/, ->(text : String){ text.to_i })
+          )
+        )
+      end
     end
 
-    def internal_data
-      @interval.to_s
-    end
-  end
-
-  def self.list_parser
-    ListParser(ListNode).new(
-      TokenParser(TokenNode).new(/[a-z]+/),
-      StringParser.new(",")
-    )
-  end
-
-  describe Syntaks::Parsers::ListParser do
-    it "parses a list with multiple seperated items" do
-      parser = list_parser
-      source = Source.new("a,b,xyz")
-      state = ParseState.new(source)
-
-      assert parser.call(state).success?
+    def test_full_match
+      assert TestParser.new.call("+1337").full_match?
+      assert TestParser.new.call("-1+2+3+1001").full_match?
     end
 
-    it "does parse a partial list" do
-      parser = list_parser
-      source = Source.new("a,invalid;,xyz")
-      state = ParseState.new(source)
-
-      result = parser.call(state) as ParseSuccess
-
-      assert result.interval.to_s == "SourceInterval(0,9)"
-    end
-  end
-
-end
-
-module SyntaksSpec_SimpleListParser
-  include Syntaks
-  include Syntaks::Parsers
-
-  class Inner < InnerNode
-  end
-
-  class Term < TerminalNode
-    def initialize(@state, @interval)
+    def test_partial_match
+      assert TestParser.new.call("+1337+").partial_match?
+      assert TestParser.new.call("-1+2+3+1001 1").partial_match?
     end
 
-    def internal_data
-      @interval.to_s
-    end
-  end
-
-  def self.list_parser
-    ListParser(Inner).new(
-      SequenceParser(Inner).new([
-        TokenParser(Term).new(/[1-9][0-9]*/),
-        TokenParser(Term).new(/[+-]/)
-      ])
-    )
-  end
-
-  describe Syntaks::Parsers::ListParser do
-    it "does not parse an empty list" do
-      parser = list_parser
-      source = Source.new("")
-      state = ParseState.new(source)
-
-      assert !parser.call(state).success?
-    end
-
-    it "parses a list with multiple seperated items" do
-      parser = list_parser
-      source = Source.new("1+25-4")
-      state = ParseState.new(source)
-
-      assert parser.call(state).success?
-    end
-
-    it "does parse a partial list" do
-      parser = list_parser
-      source = Source.new("123+4334+-")
-      state = ParseState.new(source)
-
-      result = parser.call(state) as ParseSuccess
-
-      assert result.interval.to_s == "SourceInterval(0,9)"
+    def test_no_match
+      assert !TestParser.new.call("").success?
+      assert !TestParser.new.call("1337").success?
+      assert !TestParser.new.call("yes").success?
     end
   end
 end

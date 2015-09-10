@@ -1,39 +1,31 @@
 require "../../spec_helper"
 
-module SyntaksSpec_SequenceParser
-  include Syntaks
-  include Syntaks::Parsers
+module SequenceParserTests
+  class NestedParsersTest < Minitest::Test
+    class TestParser < Syntaks::FullParser
 
-  class LongSentenceNode < InnerNode
-  end
+      def root
+        @root ||= SequenceParser.new(
+          TokenParser.new("this "),
+          SequenceParser.new(
+            TokenParser.new("is "),
+            SequenceParser.new(
+              TokenParser.new("a "),
+              TokenParser.new("sentence")
+            )
+          )
+        )
+      end
+    end
 
-  class LongLongNode < InnerNode
-  end
+    def test_acceptance
+      assert !TestParser.new.call("").success?
+      assert !TestParser.new.call("this is").success?
+      assert TestParser.new.call("this is a sentence").full_match?
+    end
 
-  def self.long_sentence_parser
-    SequenceParser(LongSentenceNode).new([
-      StringParser.new("this "),
-      StringParser.new("is "),
-      StringParser.new("a "),
-      longlong,
-      StringParser.new("sentence")
-    ])
-  end
-
-  def self.longlong
-    ListParser(LongLongNode).new(
-      StringParser.new("long ")
-    )
-  end
-
-  describe Syntaks::Parsers::SequenceParser do
-    it "parses" do
-      parser = long_sentence_parser
-      source = Source.new("this is a long long long sentence")
-      state = ParseState.new(source)
-
-      res = parser.call(state)
-      assert res.success?
+    def test_partial_match?
+      assert TestParser.new.call("this is a sentence with some extra stuff").partial_match?
     end
   end
 end

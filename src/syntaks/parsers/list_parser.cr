@@ -1,40 +1,34 @@
 module Syntaks
   module Parsers
 
-    class ListParser(T) < Parser
-      def initialize(@parser : Parser)
-        @sequence = SequenceParser(Node).new([@parser]) do |args|
-          args[0]
+    class ListParser(T) < Parser(Array(T))
+      def initialize(@parser : Parser(T))
+        @sequence = @parser
+      end
+
+      def initialize(@parser : Parser(T), @seperator_parser : Parser(B))
+        @sequence = SequenceParser.new(@seperator_parser, @parser) do |value|
+          value[0]
         end
       end
 
-      def initialize(@parser : Parser, seperator_parser : Parser)
-        @seperator_parser = seperator_parser
-        @sequence = SequenceParser(Node).new([seperator_parser, @parser]) do |args|
-          args[1]
-        end
-      end
-
-      def call(state : ParseState) : ParseResult
+      def call(state : ParseState)
         case res = @parser.call(state)
         when ParseSuccess
           results = [res] + parse_tail(res.end_state)
 
           final_state = results.last.end_state as ParseState
-          children = results.map{ |r| r.node as Node }
+          value = results.map{ |r| r.value }
 
-          node = T.new(children)
-
-          succeed(state, final_state, node)
-        when ParseFailure
+          succeed(state, final_state, value)
+        else
           fail(state)
-        else raise "Unknown parse result"
         end
       end
 
-      private def parse_tail(state : ParseState) : Array(ParseSuccess)
+      private def parse_tail(state : ParseState)
         success = true
-        results = [] of ParseSuccess
+        results = [] of ParseSuccess(T)
         current_state = state
 
         while success
@@ -44,7 +38,7 @@ module Syntaks
           when ParseSuccess
             results << res
             current_state = res.end_state
-          when ParseFailure
+          else
             success = false
           end
         end

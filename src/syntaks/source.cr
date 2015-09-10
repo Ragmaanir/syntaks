@@ -14,6 +14,10 @@ module Syntaks
     def [](range : Range)
       @data[range]
     end
+
+    def length
+      @data.length
+    end
   end
 
   class SourceInterval
