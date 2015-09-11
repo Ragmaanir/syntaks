@@ -5,10 +5,10 @@ module Syntaks
       def initialize(@string)
       end
 
-      def call(state : ParseState) : ParseResult
+      def call(state : ParseState)
         if state.remaining_text.starts_with?(@string)
           end_state = state.forward(@string.length)
-          succeed(state, end_state)
+          succeed(state, end_state, nil)
         else
           fail(state)
         end

@@ -8,12 +8,20 @@ module Syntaks
       #   TokenParser(T).new(token, action)
       # end
 
-      def self.new(token)
-        TokenParser(String).new(token, ->(res : String){ res })
-      end
+      # def self.new(token)
+      #   TokenParser(String).new(token, ->(res : String){ res })
+      # end
 
       # def initialize(token : String | Regex)
       #   initialize(token, ->(res : String){ res })
+      # end
+
+      def self.new(token : String | Regex)
+        TokenParser(String).new(token, ->(s : String){ s })
+      end
+
+      # def initialize(@token : String | Regex)
+      #   initialize(@token, ->(s : String){ T.new(s) })
       # end
 
       def initialize(@token : String | Regex, @action : String -> T)
@@ -32,7 +40,6 @@ module Syntaks
 
         if parsed_text
           end_state = state.forward(parsed_text.length)
-          value :: T
           value = @action.call(parsed_text)
           succeed(state, end_state, value)
         else

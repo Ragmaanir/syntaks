@@ -6,15 +6,18 @@ module Syntaks
         @sequence = @parser
       end
 
-      def initialize(@parser : Parser(T), @seperator_parser : Parser(B))
-        @sequence = SequenceParser.new(@seperator_parser, @parser) do |value|
-          value[0]
-        end
+      def initialize(@parser : Parser(T), seperator_parser : Parser(B))
+        @seperator_parser = seperator_parser
+        @sequence = SequenceParser.new(
+          seperator_parser,
+          @parser,
+          ->(value : {B, T}) { value[1] }
+        )
       end
 
       def call(state : ParseState)
         case res = @parser.call(state)
-        when ParseSuccess
+        when ParseSuccess(T)
           results = [res] + parse_tail(res.end_state)
 
           final_state = results.last.end_state as ParseState
@@ -35,7 +38,7 @@ module Syntaks
           res = @sequence.call(current_state)
 
           case res
-          when ParseSuccess
+          when ParseSuccess(T)
             results << res
             current_state = res.end_state
           else

@@ -1,177 +1,142 @@
 require "../spec_helper"
 
-# module SyntaksSpec_Parser
+module SyntaksSpec_Parser
 
-#   include Syntaks
-#   include Syntaks::Parsers
+  class ListParserAcceptanceTest < Minitest::Test
+    class TestParser < Syntaks::FullParser
+      include Syntaks
+      include Syntaks::Parsers
 
-#   class TestParser
+      class Root < InnerNode
+        def initialize(@args : Arguments)
+          @children = [@args]
+        end
+      end
 
-#     class Root < InnerNode
-#       def initialize(@args : Arguments)
-#         @children = [@args]
-#       end
-#     end
+      class Arguments < InnerNode
+        def initialize(@children : Array(Syntaks::Node))
+        end
+      end
 
-#     class Arguments < InnerNode
-#       def initialize(@children : Array(Syntaks::Node))
-#       end
-#     end
+      class Literal < TerminalNode
+        def initialize(@value : String)
+        end
+      end
 
-#     class Argument < InnerNode
-#       def initialize(@lit : Literal)
-#         @children = [@lit]
-#       end
-#     end
+      def root
+        SequenceParser.new(
+          TokenParser.new("["),
+          SequenceParser.new(
+            args,
+            TokenParser.new("]")
+          ),
+         ->(args : {String, {Array(Literal), String}}){ Root.new(Arguments.new(args[1][0])) }
+        )
+      end
 
-#     class Literal < TerminalNode
-#       private def internal_data
-#         @interval.to_s
-#       end
-#     end
+      def args
+        ListParser(Literal).new(literal, TokenParser.new(","))
+      end
 
-#     def root
-#       SequenceParser(Root).new([StringParser.new("["), args, StringParser.new("]")]) do |args|
-#         Root.new(args[1] as Arguments)
-#       end
-#     end
+      def literal
+        TokenParser(Literal).new(/[1-9][0-9]*/, ->(s : String){ Literal.new(s) })
+      end
+    end
 
-#     def args
-#       ListParser(Arguments).new(arg, StringParser.new(","))
-#     end
 
-#     def arg
-#       SequenceParser(Argument).new([literal]) do |args|
-#         Argument.new(args[0] as Literal)
-#       end
-#     end
+    def test_full_match
+      assert TestParser.new.call("[190,500,1337]").full_match?
+      r = TestParser.new.call("[190,500,1337]") as Syntaks::ParseSuccess
+      assert r.value.is_a?(TestParser::Root)
+    end
 
-#     def literal
-#       TokenParser(Literal).new(/[1-9][0-9]*/)
-#     end
-#   end
+    def test_no_match
+      assert !TestParser.new.call("[1,]").success?
+      assert !TestParser.new.call("[1,,]").success?
+    end
 
-#   describe Syntaks::Parser do
-#     it "" do
-#       parser = TestParser.new.root
+  end
 
-#       source = Syntaks::Source.new("[190,500,1337]")
-#       state = Syntaks::ParseState.new(source)
+  class RecursiveDefinitionTest < Minitest::Test
+    class TestParser < Syntaks::FullParser
+      include Syntaks
+      include Syntaks::Parsers
 
-#       res = parser.call(state)
-#       assert res.success?
-#     end
+      class AddExp < InnerNode
+        def initialize(@left : Node, @right = nil : Array({Operator, Node})?)
+        end
+      end
 
-#     it "" do
-#       parser = TestParser.new.root
+      class AddExpTail < InnerNode
+      end
 
-#       source = Syntaks::Source.new("[1,]")
-#       state = Syntaks::ParseState.new(source)
+      class AddExpElem < InnerNode
+      end
 
-#       assert !parser.call(state).success?
-#     end
+      class TerminalAddExp < InnerNode
+      end
 
-#     it "" do
-#       parser = TestParser.new.root
+      class Literal < TerminalNode
+        def initialize(@value)
+        end
+      end
 
-#       source = Syntaks::Source.new("[1,,]")
-#       state = Syntaks::ParseState.new(source)
+      class Operator < TerminalNode
+        def initialize(@name)
+        end
+      end
 
-#       assert !parser.call(state).success?
-#     end
-#   end
+      def root
+        add_exp
+      end
 
-# end
+      def add_exp
+        @add_exp ||= ParserReference(AddExp).new ->{
+          SequenceParser.new(
+            terminal_add_exp,
+            ListParser({Operator, AddExp}).new(
+              SequenceParser.new(
+                TokenParser(Operator).new(/[+-]/, ->(s : String){ Operator.new(s) }),
+                terminal_add_exp
+              )
+            ),
+            ->(args : {AddExp, Array({Operator, AddExp})}){ AddExp.new(args[0], args[1]) }
+          )
+        }
+      end
 
-# module SyntaksSpec_RecursiveParsers
-#   include Syntaks
-#   include Syntaks::Parsers
+      def terminal_add_exp
+        @terminal_add_exp ||= ParserReference(AddExp | Literal).new ->{
+          AlternativeParser.new(par_exp, literal)
+        }
+      end
 
-#   class AddExp < InnerNode
-#   end
+      def par_exp
+        @par_exp ||= ParserReference(AddExp).new ->{
+          SequenceParser(Nil, {AddExp, Nil}, AddExp).new(
+            StringParser.new("("),
+            SequenceParser.new(
+              add_exp,
+              StringParser.new(")")
+            ),
+            ->(args : {Nil, {AddExp, Nil}}){ args[1][0] }
+          )
+        }
+      end
 
-#   class AddExpTail < InnerNode
-#   end
+      def literal
+        TokenParser.new(/[1-9][0-9]*/, ->(s : String){ AddExp.new(Literal.new(s)) })
+      end
+    end
 
-#   class AddExpElem < InnerNode
-#   end
+    def test_full_match
+      assert TestParser.new.call("1+234").full_match?
+      assert TestParser.new.call("1+234+(1234-55)").full_match?
+    end
 
-#   class TerminalAddExp < InnerNode
-#   end
-
-#   class Literal < TerminalNode
-#   end
-
-#   class Operator < TerminalNode
-#   end
-
-#   def self.exp
-#     add_exp
-#   end
-
-#   def self.add_exp
-#     @@add_exp ||= ParserReference.new do
-#       SequenceParser(AddExp).new([
-#         terminal_add_exp,
-#         ListParser(AddExpTail).new(
-#           SequenceParser(AddExpElem).new([
-#             TokenParser(Operator).new(/[+-]/),
-#             terminal_add_exp
-#           ])
-#         )
-#       ])
-#     end
-#   end
-
-#   def self.terminal_add_exp
-#     @@terminal_add_exp ||= ParserReference.new do
-#       AlternativeParser.new([par_exp, literal])
-#     end
-#   end
-
-#   def self.par_exp
-#     @@par_exp ||= ParserReference.new do
-#       SequenceParser(AddExp).new([
-#         StringParser.new("("),
-#         add_exp,
-#         StringParser.new(")")
-#       ])
-#     end
-#   end
-
-#   def self.literal
-#     TokenParser(Literal).new(/[1-9][0-9]*/)
-#   end
-
-#   describe Syntaks::Parser do
-#     it "" do
-#       parser = exp
-
-#       source = Syntaks::Source.new("1+234")
-#       state = Syntaks::ParseState.new(source)
-
-#       res = parser.call(state)
-#       assert res.success?
-#     end
-
-#     it "" do
-#       parser = exp
-
-#       source = Syntaks::Source.new("1+234+(1234-55)")
-#       state = Syntaks::ParseState.new(source)
-
-#       res = parser.call(state)
-#       assert res.success?
-#     end
-
-#     pending "" do
-#       parser = exp
-
-#       source = Syntaks::Source.new("1+234+(1234-)")
-#       state = Syntaks::ParseState.new(source)
-
-#       res = parser.call(state)
-#       assert !res.success?
-#     end
-#   end
-# end
+    def test_no_full_match
+      res = TestParser.new.call("1+234+(1234-)")
+      assert !res.full_match?
+    end
+  end
+end

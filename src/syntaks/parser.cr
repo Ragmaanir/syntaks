@@ -8,7 +8,6 @@ module Syntaks
     getter :logger
 
     def initialize(@source : Source, @at = 0 : Int, @logger = Logger.new(STDOUT))
-      @logger.level = Logger::Severity::DEBUG
     end
 
     def interval(n : Int)

@@ -9,12 +9,19 @@ module Syntaks
 
     abstract def root : Parser(T) # FIXME T should be the generic parameter
 
-    def call(input : String)
-      call(Source.new(input))
+    def call!(input : String)
+      logger = Logger.new(STDOUT)
+      logger.level = Logger::Severity::DEBUG
+      call(input, logger)
     end
 
-    def call(source : Source)
-      root.call(ParseState.new(source))
+    def call(input : String, logger = Logger.new(STDOUT) : Logger)
+      call(Source.new(input), logger)
     end
+
+    def call(source : Source, logger = Logger.new(STDOUT) : Logger)
+      root.call(ParseState.new(source, logger: logger))
+    end
+
   end
 end
