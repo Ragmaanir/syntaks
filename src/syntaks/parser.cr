@@ -62,6 +62,7 @@ module Syntaks
     end
 
     abstract def to_ebnf : String
+    abstract def to_structure : String
   end
 
 end

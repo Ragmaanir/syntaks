@@ -3,20 +3,22 @@ module Syntaks
 
     class SequenceParser(L, R, T) < Parser(T)
 
-      def self.new(left : Parser(L), right : SequenceParser({X,Y}), &action : ((L,X,Y) -> T))
-        SequenceParser(L, {X,Y}, T).new(left, right, ->(t : {L,{X,Y}}){ action.call(t[0], t[1][0], t[1][1]) })
-      end
+      getter :left, :right, :action
 
-      def self.new(left : Parser(L), right : SequenceParser(X, Y, {X,Y}))
-        SequenceParser(L, {X,Y}, {L,X,Y}).new(left, right, ->(t : {L,{X,Y}}){ {t[0], t[1][0], t[1][1] } })
-      end
+      # def self.new(left : Parser(L), right : SequenceParser(X,Y,{X,Y}), &action : ((L,X,Y) -> T))
+      #   SequenceParser(L, {X,Y}, T).new(left, right, ->(t : {L,{X,Y}}){ action.call(t[0], t[1][0], t[1][1]) })
+      # end
 
-      def self.new(left : SequenceParser({A,B}), right : SequenceParser({X,Y}), &action : ({A,B,X,Y} -> T))
-        SequenceParser(T).new(left, right, action)
-      end
+      # def self.new(left : Parser(L), right : SequenceParser(X, Y, {X,Y}))
+      #   SequenceParser(L, {X,Y}, {L,X,Y}).new(left, right, ->(t : {L,{X,Y}}){ {t[0], t[1][0], t[1][1] } })
+      # end
+
+      # def self.new(left : SequenceParser(A,B,{A,B}), right : SequenceParser(X,Y,{X,Y}), &action : ({A,B,X,Y} -> T))
+      #   SequenceParser({A,B},{X,Y},T).new(left, right, action)
+      # end
 
       def self.new(left : Parser(L), right : Parser(R), &action : ({L,R} -> T))
-        SequenceParser(T).new(left, right, action)
+        SequenceParser(L,R,T).new(left, right, action)
       end
 
       def self.new(left : Parser(L), right : Parser(R))
@@ -47,6 +49,10 @@ module Syntaks
 
       def to_ebnf
         "#{@left.to_ebnf} #{@right.to_ebnf}"
+      end
+
+      def to_structure
+        "SequenceParser(#{left.to_structure}, #{right.to_structure})"
       end
     end
 

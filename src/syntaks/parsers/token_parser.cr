@@ -51,6 +51,10 @@ module Syntaks
         @token.inspect
       end
 
+      def to_structure
+        "TokenParser(#{@token.inspect})"
+      end
+
     end
   end
 end
