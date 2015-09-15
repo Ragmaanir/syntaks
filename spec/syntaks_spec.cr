@@ -26,20 +26,20 @@ module DjaevlSyntaks
         class_def
       end
 
-      def class_def
-        mseq(str("class"), space, id, class_body) do |_, _, name, body|
+      rule(class_def) do
+        sequence(str("class"), space, id, class_body) do |_, _, name, body|
           {name, body}
         end
       end
 
-      def class_body
-        mseq(nl, instance_var_decl, nl, str("endclass")) do |_, var_decl, _, _|
+      rule(class_body) do
+        sequence(nl, instance_var_decl, nl, str("endclass")) do |_, var_decl, _, _|
           [var_decl]
         end
       end
 
       def instance_var_decl
-        mseq(str("attribute"), space, id) do |_, _, name|
+        sequence(str("attribute"), space, id) do |_, _, name|
           name
         end
       end
