@@ -24,7 +24,7 @@ module Syntaks
 
     getter :value, :end_state
 
-    def initialize(parser : Parser, @state : ParseState, @end_state : ParseState, @value : V)
+    def initialize(@parser : Parser, @state : ParseState, @end_state : ParseState, @value : V)
     end
 
     def success?
@@ -42,7 +42,9 @@ module Syntaks
 
   class ParseFailure < ParseResult
 
-    def initialize(parser : Parser, @state : ParseState)
+    getter :last_success
+
+    def initialize(@parser : Parser, @state : ParseState, @last_success : ParseState?)
       @end_state = @state
     end
 
@@ -55,7 +57,9 @@ module Syntaks
     end
 
     def inspect
-      "ParseFailure(#{@state.inspect})"
+      # FIXMW parser ist not the parser used to parse last_success
+      #"ParseFailure(#{@state.inspect})"
+      "ParseFailure(#{@last_success.inspect}, #{@parser.to_ebnf})"
     end
   end
 

@@ -15,7 +15,7 @@ module Syntaks
     end
 
     def forward(n : Int)
-      raise ArgumentError.new("n==0") if n == 0
+      raise ArgumentError.new("n<0") if n < 0
       ParseState.new(source, at + n, logger)
     end
 
@@ -24,7 +24,12 @@ module Syntaks
     end
 
     def inspect
-      text = source[at, 12].colorize(:blue).bold.on(:dark_gray)
+      #text = source[at, 16].inspect.colorize(:blue).bold.on(:dark_gray)
+      # text = remaining_text[/([^\n]*)/]
+      # text = remaining_text[0, 32] if text.length < 10
+      # FIXME print current line unless parsing failed at newline or so
+      text = remaining_text[0, 32]
+      text = text.inspect.colorize(:blue).bold.on(:dark_gray)
       "ParseState(#{at}, #{text})"
     end
 
@@ -42,9 +47,9 @@ module Syntaks
       ParseSuccess(T).new(self, state, end_state, value)
     end
 
-    private def fail(state)
-      state.logger.debug "FAIL(#{self.to_s}): #{state.at}"
-      ParseFailure.new(self, state)
+    private def fail(state, last_success = nil : ParseState?)
+      state.logger.debug "FAIL(#{self.to_ebnf}: #{state.at})"
+      ParseFailure.new(self, state, last_success)
     end
 
     def to_s

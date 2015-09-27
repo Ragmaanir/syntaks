@@ -18,6 +18,8 @@ module Syntaks
       def call(state : ParseState)
         case res = @parser.call(state)
         when ParseSuccess(T)
+          #tail_results, last_success = parse_tail(res.end_state)
+          #results = [res] + tail_results
           results = [res] + parse_tail(res.end_state)
 
           final_state = results.last.end_state as ParseState
@@ -25,7 +27,7 @@ module Syntaks
 
           succeed(state, final_state, value)
         else
-          fail(state)
+          fail(state, res.last_success)
         end
       end
 
@@ -33,6 +35,7 @@ module Syntaks
         success = true
         results = [] of ParseSuccess(T)
         current_state = state
+        last_success = nil
 
         while success
           res = @sequence.call(current_state)
@@ -43,17 +46,19 @@ module Syntaks
             current_state = res.end_state
           else
             success = false
+            last_success = res.last_success
           end
         end
 
+        #{results, last_success}
         results
       end
 
       def to_ebnf
-        if @seperator_parser
-          "list(#{@parser.to_ebnf})"
+        if sep = @seperator_parser
+          "list(#{@parser.to_ebnf}, #{sep.to_ebnf})"
         else
-          "list(#{@parser.to_ebnf}, #{@seperator_parser.to_ebnf})"
+          "list(#{@parser.to_ebnf})"
         end
       end
 

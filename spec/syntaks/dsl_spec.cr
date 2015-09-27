@@ -1,17 +1,15 @@
 require "../spec_helper"
 
 module SyntaksSpec_DSL
-  class DSLMacroTests < Minitest::Test
+  class SequenceMacroTests < Minitest::Test
     class TestParser < Syntaks::FullParser
       include Syntaks::DSL
 
-      rule(root) do
+      rule(:root) do
         sequence(str("first"), space, str("last"))
       end
 
-      rule(space) do |str|
-        token(/\s+/)
-      end
+      token(:space, /\s+/)
     end
 
     def test_types

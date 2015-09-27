@@ -40,7 +40,8 @@ module Syntaks
             value = @action.call({left_result.value, right_result.value})
             succeed(state, right_result.end_state, value)
           else
-            fail(state)
+            #fail(state, left_result.end_state)
+            fail(state, right_result.last_success || left_result.end_state)
           end
         else
           fail(state)

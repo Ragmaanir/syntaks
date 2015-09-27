@@ -91,7 +91,7 @@ module SyntaksSpec_Parser
       end
 
       def add_exp
-        @add_exp ||= ParserReference(AddExp).new ->{
+        @add_exp ||= ParserReference(AddExp).new "add_exp", ->{
           SequenceParser.new(
             terminal_add_exp,
             ListParser({Operator, AddExp}).new(
@@ -106,13 +106,13 @@ module SyntaksSpec_Parser
       end
 
       def terminal_add_exp
-        @terminal_add_exp ||= ParserReference(AddExp | Literal).new ->{
+        @terminal_add_exp ||= ParserReference(AddExp | Literal).new "terminal_add_exp", ->{
           AlternativeParser.new(par_exp, literal)
         }
       end
 
       def par_exp
-        @par_exp ||= ParserReference(AddExp).new ->{
+        @par_exp ||= ParserReference(AddExp).new "par_exp", ->{
           SequenceParser(Nil, {AddExp, Nil}, AddExp).new(
             StringParser.new("("),
             SequenceParser.new(

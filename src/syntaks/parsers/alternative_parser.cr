@@ -29,6 +29,10 @@ module Syntaks
           end
         end
       end
+
+      def to_ebnf
+        "#{@left.to_ebnf} | #{@right.to_ebnf}"
+      end
     end
 
   end
