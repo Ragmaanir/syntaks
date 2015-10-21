@@ -54,6 +54,10 @@ module DjaevlSyntaks
       end
 
       rule(:method_body) do
+        ListParser.new(statement)
+      end
+
+      rule(:statement) do
         sequence(literal, nl) do |lit, _|
           lit
         end
@@ -83,13 +87,13 @@ module DjaevlSyntaks
         end
 
         method gender
-          "male"
+          "male"a
         end
       endclass
     DJAEVL
 
     def test_full_match
-      res = DjaevlParser.new.call(DJAEVL_CLASS)
+      res = DjaevlParser.new.call!(DJAEVL_CLASS)
       assert res.full_match?
     end
 
@@ -98,8 +102,8 @@ module DjaevlSyntaks
       assert res.value == {
         DjaevlParser::Token.new("User"),
         [
-          {DjaevlParser::Token.new("age"), DjaevlParser::Token.new("30")},
-          {DjaevlParser::Token.new("gender"), DjaevlParser::Token.new("\"male\"")}
+          {DjaevlParser::Token.new("age"), [DjaevlParser::Token.new("30")]},
+          {DjaevlParser::Token.new("gender"), [DjaevlParser::Token.new("\"male\"")]}
         ]
       }
     end

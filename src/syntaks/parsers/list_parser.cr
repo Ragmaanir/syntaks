@@ -26,8 +26,11 @@ module Syntaks
           value = results.map{ |r| r.value }
 
           succeed(state, final_state, value)
-        else
+        when ParseFailure
           fail(state, res.last_success)
+        else
+          #error(state)
+          fail(state)
         end
       end
 

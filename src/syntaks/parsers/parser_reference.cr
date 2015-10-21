@@ -7,7 +7,7 @@ module Syntaks
       def initialize(@name : String | Symbol, @referenced_parser : -> Parser(T))
       end
 
-      def call(state : ParseState)# : ParseResult(T)
+      def call(state : ParseState)
         referenced_parser.call(state)
       end
 

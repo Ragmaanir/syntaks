@@ -23,7 +23,7 @@ TODO: Write usage here for library
 ## TODO
 
 - selectively disable backtracking
-- error-recovery productions
+- error-recovery productions / synchronization tokens
 - optional whitespace skippers
 - remember longest parsed prefix when parsing fails
 - detailed syntax errors: display production that failed and the location where exactly it failed

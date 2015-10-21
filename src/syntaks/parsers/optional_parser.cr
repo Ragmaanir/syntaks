@@ -9,13 +9,17 @@ module Syntaks
         case res = @parser.call(state)
         when ParseSuccess
           succeed(state, res.end_state, res.value)
-        else
+        when ParseFailure
           succeed(state, state, nil)
+        else
+          #error(state)
+          fail(state)
         end
       end
 
       def to_ebnf
-        @parser.to_ebnf.surround("[", "]")
+        #@parser.to_ebnf.surround("[", "]") # FIXME surround
+        "[#{@parser.to_ebnf}]"
       end
     end
 

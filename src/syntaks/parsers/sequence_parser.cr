@@ -17,18 +17,18 @@ module Syntaks
       #   SequenceParser({A,B},{X,Y},T).new(left, right, action)
       # end
 
-      def self.new(left : Parser(L), right : Parser(R), &action : ({L,R} -> T))
-        SequenceParser(L,R,T).new(left, right, action)
+      def self.new(left : Parser(L), right : Parser(R), backtracking = true, &action : ({L,R} -> T))
+        SequenceParser(L, R, T).new(left, right, action, backtracking)
       end
 
-      def self.new(left : Parser(L), right : Parser(R))
-        SequenceParser(L, R, {L,R}).new(left, right, (->(t : {L,R}){ t }))
+      def self.new(left : Parser(L), right : Parser(R), backtracking = true)
+        SequenceParser(L, R, {L,R}).new(left, right, (->(t : {L,R}){ t }), backtracking)
       end
 
-      def initialize(@left : Parser(L), @right : Parser(R), @action : ({L,R} -> T))
+      def initialize(@left : Parser(L), @right : Parser(R), @action : ({L,R} -> T), @backtracking = true : Bool)
       end
 
-      def call(state : ParseState) : (ParseSuccess(T) | ParseFailure)
+      def call(state : ParseState) : ParseSuccess(T) | ParseFailure | ParseError
         left_result = @left.call(state)
 
         case left_result
@@ -39,12 +39,22 @@ module Syntaks
           when ParseSuccess(R)
             value = @action.call({left_result.value, right_result.value})
             succeed(state, right_result.end_state, value)
-          else
+          when ParseFailure
             #fail(state, left_result.end_state)
-            fail(state, right_result.last_success || left_result.end_state)
+            if @backtracking
+              fail(state, right_result.last_success || left_result)
+            else
+              error(state)
+              #fail(state)
+            end
+          else
+            right_result
           end
+        when ParseFailure
+          fail(state, left_result.last_success)
         else
-          fail(state)
+          error(state)
+          #fail(state)
         end
       end
 

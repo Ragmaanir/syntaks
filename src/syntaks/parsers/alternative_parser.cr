@@ -10,23 +10,29 @@ module Syntaks
       def initialize(@left : Parser(L), @right : Parser(R), ignored : Bool)
       end
 
-      def call(state : ParseState)# : ParseResult
+      def call(state : ParseState)
         left_result = @left.call(state)
 
         case left_result
         when ParseSuccess(L)
           left_value = left_result.value
           succeed(state, left_result.end_state, left_value)
-        else
+        when ParseFailure
           right_result = @right.call(state)
 
           case right_result
           when ParseSuccess(R)
             right_value = right_result.value
             succeed(state, right_result.end_state, right_value)
+          when ParseFailure
+            fail(state, left_result.last_success || right_result.last_success)
           else
+            #error(state)
             fail(state)
           end
+        else
+          #error(state)
+          fail(state)
         end
       end
 
