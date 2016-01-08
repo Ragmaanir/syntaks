@@ -14,7 +14,7 @@ module Syntaks
     end
 
     macro gen_nested_seq(args, skip, &block)
-      {% if (args.length - skip) == 2 %}
+      {% if (args.size - skip) == 2 %}
         SequenceParser.new(
           {{args[skip].id}},
           {{args[skip+1].id}}

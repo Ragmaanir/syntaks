@@ -39,7 +39,7 @@ module Syntaks
         end
 
         if parsed_text
-          end_state = state.forward(parsed_text.length)
+          end_state = state.forward(parsed_text.size)
           value = @action.call(parsed_text)
           succeed(state, end_state, value)
         else

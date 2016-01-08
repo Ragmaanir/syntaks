@@ -30,7 +30,7 @@ module Syntaks
     end
 
     def full_match?
-      end_state.at == end_state.source.length
+      end_state.at == end_state.source.size
     end
 
     def inspect

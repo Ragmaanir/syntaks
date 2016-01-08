@@ -50,7 +50,7 @@ module Syntaks
     def inspect
       #text = source[at, 16].inspect.colorize(:blue).bold.on(:dark_gray)
       # text = remaining_text[/([^\n]*)/]
-      # text = remaining_text[0, 32] if text.length < 10
+      # text = remaining_text[0, 32] if text.size < 10
       # FIXME print current line unless parsing failed at newline or so
       text = remaining_text[0, 32]
       text = text.inspect.colorize(:blue).bold.on(:dark_gray)

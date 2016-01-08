@@ -7,7 +7,7 @@ module Syntaks
 
       def call(state : ParseState)
         if state.remaining_text.starts_with?(@string)
-          end_state = state.forward(@string.length)
+          end_state = state.forward(@string.size)
           succeed(state, end_state, nil)
         else
           fail(state)
