@@ -43,11 +43,19 @@ module Syntaks
         while success
           res = @sequence.call(current_state)
 
-          case res
-          when ParseSuccess(T)
+          # case res
+          # when ParseSuccess(T)
+          #   results << res
+          #   current_state = res.end_state
+          # when ParseFailure, ParseError
+          #   success = false
+          #   last_success = res.last_success
+          # end
+
+          if res.is_a?(ParseSuccess(T))
             results << res
             current_state = res.end_state
-          else
+          elsif res.is_a?(ParseFailure)
             success = false
             last_success = res.last_success
           end

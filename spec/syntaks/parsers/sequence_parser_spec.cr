@@ -20,10 +20,8 @@ module SequenceParserTests
     end
 
     def test_acceptance
-      p typeof(TestParser.new.call(""))
       r = TestParser.new.call("")
-      p r.success?
-      puts r.inspect
+      assert r.success?
       # assert !TestParser.new.call("").success?
       # assert !TestParser.new.call("this is").success?
       # assert TestParser.new.call("this is a sentence").full_match?

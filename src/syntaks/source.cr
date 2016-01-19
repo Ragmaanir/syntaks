@@ -16,7 +16,7 @@ module Syntaks
     end
 
     def length
-      @data.length
+      @data.size
     end
   end
 

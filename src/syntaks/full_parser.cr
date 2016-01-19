@@ -11,7 +11,7 @@ module Syntaks
 
     def call!(input : String)
       logger = Logger.new(STDOUT)
-      logger.level = Logger::Severity::DEBUG
+      #logger.level = Logger::Severity::DEBUG
       call(input, logger)
     end
 

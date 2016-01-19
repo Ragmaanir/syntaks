@@ -77,10 +77,10 @@ module Syntaks
       ParseFailure.new(self, state, last_success)
     end
 
-    private def error(state)
-      ParseError.new(self, state)
-      #ParseFailure.new(self, state, nil)
-    end
+    # private def error(state)
+    #   ParseError.new(self, state)
+    #   #ParseFailure.new(self, state, nil)
+    # end
 
     def to_s
       canonical_name

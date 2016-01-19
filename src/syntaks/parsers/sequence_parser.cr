@@ -28,7 +28,7 @@ module Syntaks
       def initialize(@left : Parser(L), @right : Parser(R), @action : ({L,R} -> T), @backtracking = true : Bool)
       end
 
-      def call(state : ParseState) : ParseSuccess(T) | ParseFailure | ParseError
+      def call(state : ParseState) : ParseSuccess(T) | ParseFailure# | ParseError
         left_result = @left.call(state)
 
         case left_result
@@ -44,8 +44,8 @@ module Syntaks
             if @backtracking
               fail(state, right_result.last_success || left_result)
             else
-              error(state)
-              #fail(state)
+              #error(state)
+              fail(state)
             end
           else
             right_result
@@ -53,8 +53,8 @@ module Syntaks
         when ParseFailure
           fail(state, left_result.last_success)
         else
-          error(state)
-          #fail(state)
+          #error(state)
+          fail(state)
         end
       end
 
