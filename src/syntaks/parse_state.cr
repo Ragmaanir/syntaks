@@ -20,7 +20,7 @@ module Syntaks
     end
 
     def current_line_start
-      source[0..at].rindex("\n") || 0
+      source[0..at].index("\n") || 0
     end
 
     def current_line
