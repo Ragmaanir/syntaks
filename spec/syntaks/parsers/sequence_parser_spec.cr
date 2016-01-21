@@ -20,11 +20,11 @@ module SequenceParserTests
     end
 
     def test_acceptance
-      r = TestParser.new.call("")
-      assert r.success?
+      #r = TestParser.new.call("")
+      #assert r.success?
       # assert !TestParser.new.call("").success?
       # assert !TestParser.new.call("this is").success?
-      # assert TestParser.new.call("this is a sentence").full_match?
+      assert TestParser.new.call("this is a sentence").full_match?
     end
 
     def test_partial_match?

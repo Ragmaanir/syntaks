@@ -3,7 +3,7 @@ module Syntaks
 
     class SequenceParser(L, R, T) < Parser(T)
 
-      getter :left, :right, :action
+      getter left, right, action
 
       # def self.new(left : Parser(L), right : SequenceParser(X,Y,{X,Y}), &action : ((L,X,Y) -> T))
       #   SequenceParser(L, {X,Y}, T).new(left, right, ->(t : {L,{X,Y}}){ action.call(t[0], t[1][0], t[1][1]) })

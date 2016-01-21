@@ -87,7 +87,7 @@ module DjaevlSyntaks
         end
 
         method gender
-          "male"a
+          "male"
         end
       endclass
     DJAEVL

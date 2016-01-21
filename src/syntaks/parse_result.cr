@@ -55,33 +55,11 @@ module Syntaks
     end
 
     def inspect
-      # FIXMW parser ist not the parser used to parse last_success
+      # FIXME parser ist not the parser used to parse last_success
       #"ParseFailure(#{@state.inspect})"
       "ParseFailure(#{@last_success.inspect}, #{@parser.to_ebnf})"
     end
 
   end
-
-  # class ParseError < ParseResult
-  #
-  #   getter last_success
-  #
-  #   def initialize(@parser : Parser, @state : ParseState)
-  #     @end_state = @state
-  #   end
-  #
-  #   def success?
-  #     false
-  #   end
-  #
-  #   def full_match?
-  #     false
-  #   end
-  #
-  #   def inspect
-  #     "ParseError"
-  #   end
-  #
-  # end
 
 end

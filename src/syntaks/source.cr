@@ -2,7 +2,7 @@ module Syntaks
 
   class Source
 
-    getter :at
+    getter at
 
     def initialize(@data : String)
     end
@@ -22,7 +22,7 @@ module Syntaks
 
   class SourceInterval
 
-    getter :from, :length
+    getter from, length
 
     def initialize(@from : Int, @length=0 : Int)
     end
