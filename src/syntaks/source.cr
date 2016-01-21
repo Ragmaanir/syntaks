@@ -20,6 +20,20 @@ module Syntaks
     end
   end
 
+  class SourceLocation
+    getter source, at
+
+    def initialize(@source : Source, @at)
+    end
+
+    def line_number
+      @source[0..at].count("\n")
+    end
+
+    def column_number
+    end
+  end
+
   class SourceInterval
 
     getter from, length

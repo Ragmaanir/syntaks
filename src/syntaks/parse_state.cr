@@ -1,9 +1,9 @@
 module Syntaks
   class ParseState
 
-    getter source, at, logger
+    getter source, at, parse_log
 
-    def initialize(@source : Source, @at = 0 : Int, @logger = Logger.new(STDOUT))
+    def initialize(@source : Source, @at : Int, @parse_log : ParseLog)
     end
 
     def interval(n : Int)
@@ -12,7 +12,7 @@ module Syntaks
 
     def forward(n : Int)
       raise ArgumentError.new("n<0") if n < 0
-      ParseState.new(source, at + n, logger)
+      ParseState.new(source, at + n, @parse_log)
     end
 
     def remaining_text

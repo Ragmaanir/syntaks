@@ -93,7 +93,7 @@ module DjaevlSyntaks
     DJAEVL
 
     def test_full_match
-      res = DjaevlParser.new.call!(DJAEVL_CLASS)
+      res = DjaevlParser.new.call(DJAEVL_CLASS)
       assert res.full_match?
     end
 

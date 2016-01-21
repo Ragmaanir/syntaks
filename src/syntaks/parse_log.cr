@@ -1,61 +1,65 @@
 module Syntaks
-  abstract class RuleProgress
-    getter rule
-  end
+  class ParseLog
 
-  class RuleStart < RuleProgress
+    class Entry
+      getter rule, from
 
-    getter location
-
-    def initialize(@rule, @location : Source::Location)
+      def initialize(@rule, @from : Int)
+      end
     end
 
-    def to_s
-      "RuleStart(#{rule}, #{location})"
-    end
-  end
+    class Success < Entry
+      getter to
 
-  class RuleEnd < RuleProgress
-
-    getter start_location, end_location
-
-    def initialize(@rule, @start_location : Source::Location, @end_location : Source::Location)
+      def initialize(@rule, @from : Int, @to : Int)
+      end
     end
 
-    def to_s
-      "RuleEnd(#{rule}, #{start_location}, #{end_location})"
+    class Failure < Entry
     end
-  end
 
-  class ProgressLog
+    class Started < Entry
+      def initialize(@rule, @from : Int)
+      end
+    end
 
     getter source, log
 
     def initialize(@source : Source)
-      @log = [] of RuleProgress
+      @log = [] of Entry
     end
 
-    def append(entry : RuleProgress)
+    def append(entry : Entry)
       @log << entry
     end
 
     private def printable_array
       @log.map do |entry|
-        h = Highlighter.new(source.text)
+        h = Highlighter.new(source[0..-1])
 
         case entry
-        when RuleStart
-          h.highlight(entry.location.offset, entry.location.offset, :white, :yellow)
-          [
-            "Trying #{entry.rule} at line(#{entry.location}):",
-            h.to_s
-          ].join("\n")
-        when RuleEnd
-          h.highlight(entry.start_location.offset, entry.end_location.offset, :white, :green)
-          [
-            "Parsed #{entry.rule} at line(#{entry.start_location}):",
-            h.to_s
-          ].join("\n")
+          when Started
+            r = entry.rule as(Parsers::ParserReference)
+            h.highlight(entry.from, entry.from+1, :white, :yellow)
+            [
+              #"Trying #{entry.rule} at line(#{entry.location}):",
+              "Rule #{r.to_ebnf_rule} started at (#{entry.from}):",
+              h.to_s
+            ].join("\n")
+          when Success
+            h.highlight(entry.from, entry.to, :white, :green)
+            [
+              #"Parsed #{entry.rule} at line(#{entry.start_location}):",
+              "Rule #{entry.rule.to_ebnf} succeeded at (#{entry.from}-#{entry.to}):",
+              h.to_s
+            ].join("\n")
+          when Failure
+            h.highlight(entry.from, entry.from+1, :white, :red)
+            [
+              #"Trying #{entry.rule} at line(#{entry.location}):",
+              "Rule #{entry.rule.to_ebnf} failed at (#{entry.from}):",
+              h.to_s
+            ].join("\n")
         end
       end
     end
