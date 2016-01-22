@@ -1,10 +1,13 @@
 name: syntaks
-version: 0.0.4
+version: 0.0.5
 
 authors:
   - ragmaanir <ragmaanir@gmail.com>
 
-# dependencies:
+dependencies:
+  kontrakt:
+    github: ragmaanir/kontrakt
+    version: ~> 0.1
 
 development_dependencies:
   minitest:

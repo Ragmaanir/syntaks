@@ -95,6 +95,8 @@ module DjaevlSyntaks
     def test_full_match
       res = DjaevlParser.new.call(DJAEVL_CLASS)
       assert res.full_match?
+
+      assert res.state.parse_log.to_s.size > 0
     end
 
     def test_ast

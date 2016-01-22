@@ -1,5 +1,9 @@
 version: 1.0
 shards:
+  kontrakt:
+    github: ragmaanir/kontrakt
+    version: 0.1.0
+
   minitest:
     github: ysbaddaden/minitest.cr
     version: 0.3.0

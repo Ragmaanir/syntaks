@@ -40,24 +40,21 @@ module Syntaks
         case entry
           when Started
             r = entry.rule as(Parsers::ParserReference)
-            h.highlight(entry.from, entry.from+1, :white, :yellow)
+            h.highlight(entry.from, :white, :yellow)
             [
-              #"Trying #{entry.rule} at line(#{entry.location}):",
-              "Rule #{r.to_ebnf_rule} started at (#{entry.from}):",
+              ["STARTED".colorize(:yellow), ": ", r.to_ebnf_rule.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
               h.to_s
             ].join("\n")
           when Success
             h.highlight(entry.from, entry.to, :white, :green)
             [
-              #"Parsed #{entry.rule} at line(#{entry.start_location}):",
-              "Rule #{entry.rule.to_ebnf} succeeded at (#{entry.from}-#{entry.to}):",
+              ["SUCCEEDED".colorize(:green), ": ", entry.rule.to_ebnf.colorize(:blue), " at (#{entry.from}-#{entry.to}):".colorize(:dark_gray)].join,
               h.to_s
             ].join("\n")
           when Failure
-            h.highlight(entry.from, entry.from+1, :white, :red)
+            h.highlight(entry.from, :white, :red)
             [
-              #"Trying #{entry.rule} at line(#{entry.location}):",
-              "Rule #{entry.rule.to_ebnf} failed at (#{entry.from}):",
+              ["FAILED".colorize(:red), ": ", entry.rule.to_ebnf.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
               h.to_s
             ].join("\n")
         end

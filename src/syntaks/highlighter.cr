@@ -9,12 +9,22 @@ module Syntaks
       end
     end
 
+    include Kontrakt
+
     def initialize(@string : String)
       @commands = [] of Command
       highlight(0, @string.size-1, :white, :black)
     end
 
+    def highlight(idx : Int, foreground : Symbol, background : Symbol)
+      precondition(idx >= 0 && idx <= @string.size)
+      end_idx = [idx+1, @string.size].min
+      highlight(idx, end_idx, foreground, background)
+    end
+
     def highlight(start_idx : Int, end_idx : Int, foreground : Symbol, background : Symbol)
+      precondition(start_idx >= 0 && start_idx <= end_idx)
+      precondition(end_idx <= @string.size)
       @commands << Command.new(start_idx, end_idx, foreground, background)
     end
 
@@ -25,7 +35,6 @@ module Syntaks
 
       @commands.each do |cmd|
         cmd.from.upto(cmd.to-1) do |i|
-          raise "#{colors.size}, #{cmd.to}" if i >= colors.size
           colors[i] = Tuple.new(cmd.foreground, cmd.background)
         end
       end
