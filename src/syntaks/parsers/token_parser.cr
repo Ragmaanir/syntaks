@@ -2,27 +2,11 @@ module Syntaks
   module Parsers
 
     class TokenParser(T) < Parser(T)
-      getter :token
-
-      # def self.new(token, action : String -> T)
-      #   TokenParser(T).new(token, action)
-      # end
-
-      # def self.new(token)
-      #   TokenParser(String).new(token, ->(res : String){ res })
-      # end
-
-      # def initialize(token : String | Regex)
-      #   initialize(token, ->(res : String){ res })
-      # end
+      getter token
 
       def self.new(token : String | Regex)
         TokenParser(String).new(token, ->(s : String){ s })
       end
-
-      # def initialize(@token : String | Regex)
-      #   initialize(@token, ->(s : String){ T.new(s) })
-      # end
 
       def initialize(@token : String | Regex, @action : String -> T)
       end

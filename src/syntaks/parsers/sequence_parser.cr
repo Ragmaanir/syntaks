@@ -5,18 +5,6 @@ module Syntaks
 
       getter left, right, action
 
-      # def self.new(left : Parser(L), right : SequenceParser(X,Y,{X,Y}), &action : ((L,X,Y) -> T))
-      #   SequenceParser(L, {X,Y}, T).new(left, right, ->(t : {L,{X,Y}}){ action.call(t[0], t[1][0], t[1][1]) })
-      # end
-
-      # def self.new(left : Parser(L), right : SequenceParser(X, Y, {X,Y}))
-      #   SequenceParser(L, {X,Y}, {L,X,Y}).new(left, right, ->(t : {L,{X,Y}}){ {t[0], t[1][0], t[1][1] } })
-      # end
-
-      # def self.new(left : SequenceParser(A,B,{A,B}), right : SequenceParser(X,Y,{X,Y}), &action : ({A,B,X,Y} -> T))
-      #   SequenceParser({A,B},{X,Y},T).new(left, right, action)
-      # end
-
       def self.new(left : Parser(L), right : Parser(R), backtracking = true, &action : ({L,R} -> T))
         SequenceParser(L, R, T).new(left, right, action, backtracking)
       end

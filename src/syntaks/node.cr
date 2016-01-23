@@ -3,7 +3,7 @@ module Syntaks
   end
 
   abstract class InnerNode < Node
-    getter :children
+    getter children
 
     def initialize(@children : Array(Node))
     end

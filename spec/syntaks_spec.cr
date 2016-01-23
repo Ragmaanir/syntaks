@@ -8,7 +8,7 @@ module DjaevlSyntaks
       include Syntaks::DSL
 
       class Token
-        getter :value
+        getter value
 
         def initialize(@value : String)
         end

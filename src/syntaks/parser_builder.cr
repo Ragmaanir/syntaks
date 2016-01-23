@@ -4,7 +4,7 @@ module Syntaks
       new(&block).result
     end
 
-    getter :result
+    getter result
 
     def initialize(&block)
       with self yield self
