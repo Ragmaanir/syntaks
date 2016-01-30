@@ -14,7 +14,7 @@ module OptionalParserTests
     end
 
     def test_result
-      r = TestParser.new.call("123") as Syntaks::ParseSuccess(Nil)
+      r = TestParser.new.call("123") as ParseSuccess(Nil)
       assert r.value == nil
     end
 
@@ -33,12 +33,12 @@ module OptionalParserTests
     end
 
     def test_ast_on_match
-      r = TestParser.new.call("number 1") as Syntaks::ParseSuccess(Tuple(String, Int32)?)
+      r = TestParser.new.call("number 1") as ParseSuccess(Tuple(String, Int32)?)
       assert r.value == {"number ", 1}
     end
 
     def test_ast_on_mismatch
-      r = TestParser.new.call("") as Syntaks::ParseSuccess(Tuple(String, Int32)?)
+      r = TestParser.new.call("") as ParseSuccess(Tuple(String, Int32)?)
       assert r.value == nil
     end
   end

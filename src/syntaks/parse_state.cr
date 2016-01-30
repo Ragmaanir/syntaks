@@ -1,6 +1,8 @@
 module Syntaks
   class ParseState
 
+    include Kontrakt
+
     getter source, at, parse_log
 
     def initialize(@source : Source, @at : Int, @parse_log : ParseLog)
@@ -11,7 +13,7 @@ module Syntaks
     end
 
     def forward(n : Int)
-      raise ArgumentError.new("n<0") if n < 0
+      precondition(n >= 0)
       ParseState.new(source, at + n, @parse_log)
     end
 
@@ -19,29 +21,33 @@ module Syntaks
       source[at..-1]
     end
 
-    def current_line_start
-      source[0..at].index("\n") || 0
+    # def current_line_start
+    #   source[0..at].index("\n") || 0
+    # end
+    #
+    # def current_line
+    #   if m = source[current_line_start..-1].match(/[^\n]*/)
+    #     m[0].inspect
+    #   else
+    #     ""
+    #     #source[current_line_start..-1][0,10]
+    #     #raise current_line_start.to_s
+    #     #raise "Regex is incorrect: #{source[current_line_start..-1]}"
+    #   end
+    # end
+
+    def location
+      SourceLocation.new(source, at)
     end
 
-    def current_line
-      if m = source[current_line_start..-1].match(/[^\n]*/)
-        m[0].inspect
-      else
-        ""
-        #source[current_line_start..-1][0,10]
-        #raise current_line_start.to_s
-        #raise "Regex is incorrect: #{source[current_line_start..-1]}"
-      end
-    end
-
-    def line_number
-      # PERFORMANCE cache this
-      source[0..at].count("\n")
-    end
-
-    def column
-      at - current_line_start
-    end
+    # def line_number
+    #   # PERFORMANCE cache this
+    #   source[0..at].count("\n")
+    # end
+    #
+    # def column
+    #   at - current_line_start
+    # end
 
     def inspect
       #text = source[at, 16].inspect.colorize(:blue).bold.on(:dark_gray)

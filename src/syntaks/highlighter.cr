@@ -28,7 +28,7 @@ module Syntaks
       @commands << Command.new(start_idx, end_idx, foreground, background)
     end
 
-    def to_s
+    def to_s(io)
       colors = Array(Tuple(Symbol,Symbol)).new(@string.size) do
         Tuple.new(:white, :black)
       end
@@ -50,7 +50,7 @@ module Syntaks
         result << char.colorize(colors[i][0]).on(colors[i][1])
       end
 
-      result.join
+      io << result.join
     end
   end
 end

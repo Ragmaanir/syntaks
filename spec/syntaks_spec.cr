@@ -1,6 +1,6 @@
 require "./spec_helper"
 
-module DjaevlSyntaks
+module DjaevlParserTests
   class DjaevlTest < Minitest::Test
 
     class DjaevlParser < Syntaks::FullParser

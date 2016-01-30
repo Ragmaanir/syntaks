@@ -1,7 +1,7 @@
 module Syntaks
   module Parsers
-
     class ListParser(T) < Parser(Array(T))
+
       def initialize(@parser : Parser(T))
         @sequence = @parser
       end
@@ -73,7 +73,10 @@ module Syntaks
         end
       end
 
-    end
+      def to_structure
+        "ListParser(#{parser.to_structure}, #{seperator_parser.to_structure})"
+      end
 
+    end
   end
 end

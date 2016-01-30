@@ -1,6 +1,6 @@
 require "../spec_helper"
 
-module SyntaksSpec_DSL
+module SyntaksDSLTests
   class SequenceMacroTests < Minitest::Test
     class TestParser < Syntaks::FullParser
       include Syntaks::DSL

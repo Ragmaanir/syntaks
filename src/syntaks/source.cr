@@ -1,5 +1,4 @@
 module Syntaks
-
   class Source
 
     getter at
@@ -18,36 +17,6 @@ module Syntaks
     def length
       @data.size
     end
+
   end
-
-  class SourceLocation
-    getter source, at
-
-    def initialize(@source : Source, @at)
-    end
-
-    def line_number
-      @source[0..at].count("\n")
-    end
-
-    def column_number
-    end
-  end
-
-  class SourceInterval
-
-    getter from, length
-
-    def initialize(@from : Int, @length=0 : Int)
-    end
-
-    def to
-      from + length
-    end
-
-    def to_s
-      "SourceInterval(#{from},#{length})"
-    end
-  end
-
 end

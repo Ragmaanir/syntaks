@@ -1,6 +1,5 @@
 module Syntaks
   module Parsers
-
     class AlternativeParser(L, R, T) < Parser(T)
 
       def self.new(left : Parser(L), right : Parser(R))
@@ -39,7 +38,11 @@ module Syntaks
       def to_ebnf
         "#{@left.to_ebnf} | #{@right.to_ebnf}"
       end
-    end
 
+      def to_structure
+        "AlternativeParser(#{left.to_structure}, #{right.to_structure})"
+      end
+
+    end
   end
 end

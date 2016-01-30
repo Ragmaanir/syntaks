@@ -26,6 +26,10 @@ module Syntaks
         "#{to_ebnf} => #{referenced_parser.to_ebnf}"
       end
 
+      def to_structure
+        "ParserReference(#{name}, #{referenced_parser.to_structure})"
+      end
+
     end
   end
 end

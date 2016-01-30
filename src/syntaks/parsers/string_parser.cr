@@ -1,7 +1,7 @@
 module Syntaks
   module Parsers
-
     class StringParser < Parser(Nil)
+
       def initialize(@string)
       end
 
@@ -14,14 +14,18 @@ module Syntaks
         end
       end
 
-      def to_s
-        "#{canonical_name}(#{@string.inspect})"
+      def to_s(io)
+        io << "#{canonical_name}(#{@string.inspect})"
       end
 
       def to_ebnf
         @string.inspect
       end
-    end
 
+      def to_structure
+        "StringParser(#{@string})"
+      end
+
+    end
   end
 end

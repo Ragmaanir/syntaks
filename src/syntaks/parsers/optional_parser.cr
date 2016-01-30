@@ -1,7 +1,7 @@
 module Syntaks
   module Parsers
-
     class OptionalParser(T) < Parser(T?)
+
       def initialize(@parser : Parser(T))
       end
 
@@ -21,7 +21,11 @@ module Syntaks
         #@parser.to_ebnf.surround("[", "]") # FIXME surround
         "[#{@parser.to_ebnf}]"
       end
-    end
 
+      def to_structure
+        "OptionalParser(#{parser.to_structure})"
+      end
+
+    end
   end
 end

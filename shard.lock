@@ -6,9 +6,9 @@ shards:
 
   minitest:
     github: ysbaddaden/minitest.cr
-    version: 0.3.0
+    version: 0.3.1
 
   power_assert:
-    github: rosylilly/power_assert.cr
-    version: 0.2.2
+    github: ragmaanir/power_assert.cr
+    commit: 30c9cbec17b3e6ad5c6f37d5424c57c88cd8ecad
 

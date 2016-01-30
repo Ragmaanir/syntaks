@@ -49,7 +49,7 @@ module AlternativeParserTests
     end
 
     def test_types
-      assert typeof(TestParser.new.root).to_s == "Syntaks::Parsers::AlternativeParser(Int32, String | Float64, String | Int32 | Float64)"
+      assert typeof(TestParser.new.root).to_s == "Syntaks::Parsers::AlternativeParser(Int32, String | Float64, String | Float64 | Int32)"
     end
 
     def test_int_value

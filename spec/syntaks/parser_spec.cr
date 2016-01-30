@@ -1,6 +1,6 @@
 require "../spec_helper"
 
-module SyntaksSpec_Parser
+module ParserTests
 
   class ListParserAcceptanceTest < Minitest::Test
     class TestParser < Syntaks::FullParser
@@ -20,6 +20,10 @@ module SyntaksSpec_Parser
 
       class Literal < TerminalNode
         def initialize(@value : String)
+        end
+
+        def internal_data
+          @value
         end
       end
 
@@ -79,10 +83,18 @@ module SyntaksSpec_Parser
       class Literal < TerminalNode
         def initialize(@value)
         end
+
+        def internal_data
+          @value
+        end
       end
 
       class Operator < TerminalNode
         def initialize(@name)
+        end
+
+        def internal_data
+          @name
         end
       end
 

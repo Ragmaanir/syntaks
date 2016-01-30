@@ -1,5 +1,5 @@
 name: syntaks
-version: 0.0.5
+version: 0.0.6
 
 authors:
   - ragmaanir <ragmaanir@gmail.com>
@@ -14,7 +14,9 @@ development_dependencies:
     github: ysbaddaden/minitest.cr
     version: ~> 0.3
   power_assert:
-    github: rosylilly/power_assert.cr
-    version: ~> 0.2
+    #github: rosylilly/power_assert.cr
+    #version: ~> 0.2
+    github: ragmaanir/power_assert.cr
+    branch: ahead
 
 license: MIT

@@ -33,7 +33,7 @@ module Syntaks
       @log << entry
     end
 
-    private def printable_array
+    def printable_array
       @log.map do |entry|
         h = Highlighter.new(source[0..-1])
 
@@ -61,8 +61,8 @@ module Syntaks
       end
     end
 
-    def to_s
-      printable_array.flatten.join("\n")
+    def to_s(io)
+      io << printable_array.flatten.join("\n")
     end
 
     def replay

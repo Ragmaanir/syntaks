@@ -24,8 +24,8 @@ module Syntaks
       ParseFailure.new(self, state, nil)
     end
 
-    def to_s
-      canonical_name
+    def to_s(io)
+      io << canonical_name
     end
 
     def canonical_name
