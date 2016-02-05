@@ -4,10 +4,10 @@ module ListParserTests
   class AcceptanceTest < Minitest::Test
     class TestParser < Syntaks::FullParser
       def root
-        @root ||= ListParser({String, Int32}).new(
+        @root ||= ListParser({Token, Int32}).new(
           SequenceParser.new(
             TokenParser.new(/[+-]/),
-            TokenParser.new(/[1-9][0-9]*/, ->(text : String){ text.to_i })
+            TokenParser.new(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i })
           )
         )
       end

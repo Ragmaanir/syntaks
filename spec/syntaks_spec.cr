@@ -1,19 +1,23 @@
 require "./spec_helper"
 
-module DjaevlParserTests
-  class DjaevlTest < Minitest::Test
+module DjaevelParserTests
+  class DjaevelTest < Minitest::Test
 
-    class DjaevlParser < Syntaks::FullParser
+    class DjaevelParser < Syntaks::FullParser
       include Syntaks::Parsers
       include Syntaks::DSL
 
-      class Token
+      class DjaevelToken
         getter value
+
+        def initialize(token : Token)
+          initialize(token.content)
+        end
 
         def initialize(@value : String)
         end
 
-        def ==(other : Token)
+        def ==(other : DjaevelToken)
           @value == other.value
         end
 
@@ -71,9 +75,9 @@ module DjaevlParserTests
         AlternativeParser.new(int_literal, string_literal)
       end
 
-      token(:string_literal, /"[^"]*"/, Token)
-      token(:int_literal, /[1-9][0-9]*/, Token)
-      token(:id,          /[a-zA-Z_][_a-zA-Z0-9]*/, Token)
+      token(:string_literal, /"[^"]*"/, DjaevelToken)
+      token(:int_literal, /[1-9][0-9]*/, DjaevelToken)
+      token(:id,          /[a-zA-Z_][_a-zA-Z0-9]*/, DjaevelToken)
       token(:space,       /[ \t]+/)
       #token(:opt_space, /[ \t]*/)
       token(:nl,          /[ \t]*[\n;][ \t]*/)
@@ -93,19 +97,19 @@ module DjaevlParserTests
     DJAEVL
 
     def test_full_match
-      res = DjaevlParser.new.call(DJAEVL_CLASS)
+      res = DjaevelParser.new.call(DJAEVL_CLASS)
       assert res.full_match?
 
       assert res.state.parse_log.to_s.size > 0
     end
 
     def test_ast
-      res = DjaevlParser.new.call(DJAEVL_CLASS) as Syntaks::ParseSuccess
+      res = DjaevelParser.new.call(DJAEVL_CLASS) as Syntaks::ParseSuccess
       assert res.value == {
-        DjaevlParser::Token.new("User"),
+        DjaevelParser::DjaevelToken.new("User"),
         [
-          {DjaevlParser::Token.new("age"), [DjaevlParser::Token.new("30")]},
-          {DjaevlParser::Token.new("gender"), [DjaevlParser::Token.new("\"male\"")]}
+          {DjaevelParser::DjaevelToken.new("age"), [DjaevelParser::DjaevelToken.new("30")]},
+          {DjaevelParser::DjaevelToken.new("gender"), [DjaevelParser::DjaevelToken.new("\"male\"")]}
         ]
       }
     end

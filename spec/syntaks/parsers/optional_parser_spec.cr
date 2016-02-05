@@ -25,8 +25,8 @@ module OptionalParserTests
       def root
         OptionalParser.new(
           SequenceParser.new(
-            TokenParser.new("number "),
-            TokenParser(Int32).new(/[0-9]+/, ->(text : String) { text.to_i })
+            TokenParser.new("number ", ->(token : Token){ token.content }),
+            TokenParser(Int32).new(/[0-9]+/, ->(token : Token){ token.content.to_i })
           )
         )
       end

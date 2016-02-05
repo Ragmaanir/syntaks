@@ -5,10 +5,10 @@ module Syntaks
       getter token
 
       def self.new(token : String | Regex)
-        TokenParser(String).new(token, ->(s : String){ s })
+        TokenParser(Token).new(token, ->(t : Token){ t })
       end
 
-      def initialize(@token : String | Regex, @action : String -> T)
+      def initialize(@token : String | Regex, @action : Token -> T)
       end
 
       #def call(state : ParseState) : ParseResult(T)
@@ -24,7 +24,7 @@ module Syntaks
 
         if parsed_text
           end_state = state.forward(parsed_text.size)
-          value = @action.call(parsed_text)
+          value = @action.call(Token.new(state.interval(parsed_text.size)))
           succeed(state, end_state, value)
         else
           fail(state)

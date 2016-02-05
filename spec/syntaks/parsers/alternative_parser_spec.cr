@@ -5,7 +5,7 @@ module AlternativeParserTests
     class TestParser < Syntaks::FullParser
       def root
         @root = AlternativeParser.new(
-          TokenParser.new(/[1-9][0-9]*/, ->(text : String){ text.to_i }),
+          TokenParser.new(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i }),
           AlternativeParser.new(
             TokenParser.new(/[A-Z]+/),
             TokenParser.new(/[a-z]+/)
@@ -15,7 +15,7 @@ module AlternativeParserTests
     end
 
     def test_types
-      assert typeof(TestParser.new.root).to_s == "Syntaks::Parsers::AlternativeParser(Int32, String, String | Int32)"
+      assert typeof(TestParser.new.root) == Syntaks::Parsers::AlternativeParser(Int32, Token, Token | Int32)
     end
 
     def test_full_match
@@ -39,17 +39,17 @@ module AlternativeParserTests
     class TestParser < Syntaks::FullParser
       def root
         @root ||= AlternativeParser.new(
-          TokenParser.new(/[1-9][0-9]*/, ->(text : String){ text.to_i }),
+          TokenParser.new(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i }),
           AlternativeParser.new(
-            TokenParser.new(/0\.[0-9]+/, ->(text : String){ text.to_f }),
-            TokenParser.new(/[a-zA-Z]+/)
+            TokenParser.new(/0\.[0-9]+/, ->(token : Token){ token.content.to_f }),
+            TokenParser.new(/[a-zA-Z]+/, ->(token : Token){ token.content })
           )
         )
       end
     end
 
     def test_types
-      assert typeof(TestParser.new.root).to_s == "Syntaks::Parsers::AlternativeParser(Int32, String | Float64, String | Float64 | Int32)"
+      assert typeof(TestParser.new.root) == Syntaks::Parsers::AlternativeParser(Int32, String | Float64, String | Float64 | Int32)
     end
 
     def test_int_value

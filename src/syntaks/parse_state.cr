@@ -9,7 +9,7 @@ module Syntaks
     end
 
     def interval(n : Int)
-      SourceInterval.new(at, n)
+      SourceInterval.new(source, at, n)
     end
 
     def forward(n : Int)

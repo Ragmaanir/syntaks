@@ -34,7 +34,7 @@ module ParserTests
             args,
             TokenParser.new("]")
           ),
-         ->(args : {String, {Array(Literal), String}}){ Root.new(Arguments.new(args[1][0])) }
+         ->(args : {Token, {Array(Literal), Token}}){ Root.new(Arguments.new(args[1][0])) }
         )
       end
 
@@ -43,7 +43,7 @@ module ParserTests
       end
 
       def literal
-        TokenParser(Literal).new(/[1-9][0-9]*/, ->(s : String){ Literal.new(s) })
+        TokenParser(Literal).new(/[1-9][0-9]*/, ->(s : Token){ Literal.new(s.content) })
       end
     end
 
@@ -108,7 +108,7 @@ module ParserTests
             terminal_add_exp,
             ListParser({Operator, AddExp}).new(
               SequenceParser.new(
-                TokenParser(Operator).new(/[+-]/, ->(s : String){ Operator.new(s) }),
+                TokenParser(Operator).new(/[+-]/, ->(s : Token){ Operator.new(s.content) }),
                 terminal_add_exp
               )
             ),
@@ -137,7 +137,7 @@ module ParserTests
       end
 
       def literal
-        TokenParser.new(/[1-9][0-9]*/, ->(s : String){ AddExp.new(Literal.new(s)) })
+        TokenParser.new(/[1-9][0-9]*/, ->(s : Token){ AddExp.new(Literal.new(s.content)) })
       end
     end
 
