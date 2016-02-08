@@ -72,7 +72,7 @@ module DjaevelParserTests
       end
 
       rule(:literal) do
-        AlternativeParser.new(int_literal, string_literal)
+        AlternativeParser.build(int_literal, string_literal)
       end
 
       token(:string_literal, /"[^"]*"/, DjaevelToken)

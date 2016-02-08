@@ -119,7 +119,7 @@ module ParserTests
 
       def terminal_add_exp
         @terminal_add_exp ||= ParserReference(AddExp | Literal, AddExp | Literal).build "terminal_add_exp", ->{
-          AlternativeParser.new(par_exp, literal)
+          AlternativeParser.build(par_exp, literal)
         }
       end
 

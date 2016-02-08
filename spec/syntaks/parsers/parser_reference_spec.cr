@@ -10,7 +10,7 @@ module ParserReferenceTests
 
       def list
         @list ||= ParserReference.build "list", ->{
-          AlternativeParser.new(
+          AlternativeParser.build(
             TokenParser.new(".", ->(s : Token){ [] of Int32 }),
             SequenceParser.new(
               list_item,

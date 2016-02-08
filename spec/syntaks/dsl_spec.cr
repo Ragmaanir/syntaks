@@ -24,13 +24,15 @@ module SyntaksDSLTests
       include Syntaks::DSL
 
       rule(:root) do
-        alternatives(str("first"), str("second"), str("xyz"))
+        alternatives(str("first"), str("second"), str("xyz")) do |token|
+          token.content
+        end
       end
 
     end
 
     def test_types
-      assert typeof(TestParser.new.root) == Parsers::ParserReference(Syntaks::Token, Syntaks::Token)
+      assert typeof(TestParser.new.root) == Parsers::ParserReference(String, String)
       assert TestParser.new.call("second").success?
       assert TestParser.new.call("xyz").success?
       assert !TestParser.new.call("aaa").success?

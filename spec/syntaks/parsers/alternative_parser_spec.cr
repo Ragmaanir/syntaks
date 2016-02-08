@@ -4,9 +4,9 @@ module AlternativeParserTests
   class NestedParsersTest < Minitest::Test
     class TestParser < Syntaks::FullParser
       def root
-        @root = AlternativeParser.new(
+        @root = AlternativeParser.build(
           TokenParser.new(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i }),
-          AlternativeParser.new(
+          AlternativeParser.build(
             TokenParser.new(/[A-Z]+/),
             TokenParser.new(/[a-z]+/)
           )
@@ -38,9 +38,9 @@ module AlternativeParserTests
   class ValueGenerationTest < Minitest::Test
     class TestParser < Syntaks::FullParser
       def root
-        @root ||= AlternativeParser.new(
+        @root ||= AlternativeParser.build(
           TokenParser.new(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i }),
-          AlternativeParser.new(
+          AlternativeParser.build(
             TokenParser.new(/0\.[0-9]+/, ->(token : Token){ token.content.to_f }),
             TokenParser.new(/[a-zA-Z]+/, ->(token : Token){ token.content })
           )
