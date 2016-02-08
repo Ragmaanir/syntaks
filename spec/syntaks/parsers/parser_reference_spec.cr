@@ -9,12 +9,12 @@ module ParserReferenceTests
       end
 
       def list
-        @list ||= ParserReference(Array(Int32)).new "list", ->{
+        @list ||= ParserReference.build "list", ->{
           AlternativeParser.new(
             TokenParser.new(".", ->(s : Token){ [] of Int32 }),
             SequenceParser.new(
               list_item,
-              list as ParserReference(Array(Int32)),
+              list as ParserReference(Array(Int32), Array(Int32)),
               ->(args : {Int32, Array(Int32)}){ [args[0]] + args[1] }
             )
           )
@@ -22,7 +22,7 @@ module ParserReferenceTests
       end
 
       def list_item
-        @list_item ||= ParserReference(Int32).new "list_item", ->{
+        @list_item ||= ParserReference.build "list_item", ->{
           SequenceParser.new(
             TokenParser.new(/\d+/, ->(token : Token){ token.content.to_i }),
             TokenParser.new(","),

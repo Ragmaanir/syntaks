@@ -80,7 +80,7 @@ module Syntaks
     macro token(name, arg)
       #TokenParser(Nil).new({{arg}}, ->(s : String){ nil })
       def {{name.id}}
-        @{{name.id}} ||= ParserReference.new "{{name.id}}", ->{
+        @{{name.id}} ||= ParserReference.build "{{name.id}}", ->{
           TokenParser(Nil).new({{arg}}, ->(s : Syntaks::Token){ nil })
         }
       end
@@ -92,7 +92,7 @@ module Syntaks
 
     macro token(name, arg, t)
       def {{name.id}}
-        @{{name.id}} ||= ParserReference.new "{{name.id}}", ->{
+        @{{name.id}} ||= ParserReference.build "{{name.id}}", ->{
           TokenParser({{t.id}}).new({{arg}}, ->(s : Syntaks::Token){ {{t.id}}.new(s) })
         }
       end
@@ -100,7 +100,7 @@ module Syntaks
 
     macro ignored_token(name, arg)
       def {{name.id}}
-        @{{name.id}} ||= ParserReference.new "{{name.id}}", ->{
+        @{{name.id}} ||= ParserReference.build "{{name.id}}", ->{
           TokenParser(Nil).new({{arg}}, ->(s : Syntaks::Token){ nil })
         }
       end
@@ -108,7 +108,7 @@ module Syntaks
 
     macro rule(name, &definition)
       def {{name.id}}
-        @{{name.id}} ||= ParserReference.new "{{name.id}}", ->{ {{yield}} }
+        @{{name.id}} ||= ParserReference.build "{{name.id}}", ->{ {{yield}} }
       end
     end
   end

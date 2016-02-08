@@ -13,8 +13,8 @@ module SyntaksDSLTests
     end
 
     def test_types
-      assert typeof(TestParser.new.root) == Syntaks::Parsers::ParserReference({Syntaks::Token,{Nil,Syntaks::Token}})
-      assert typeof(TestParser.new.space) == Syntaks::Parsers::ParserReference(Nil)
+      assert typeof(TestParser.new.root) == Syntaks::Parsers::ParserReference({Syntaks::Token,{Nil,Syntaks::Token}},{Syntaks::Token,{Nil,Syntaks::Token}})
+      assert typeof(TestParser.new.space) == Syntaks::Parsers::ParserReference(Nil, Nil)
       assert TestParser.new.call("first   last").success?
     end
   end
@@ -30,7 +30,7 @@ module SyntaksDSLTests
     end
 
     def test_types
-      assert typeof(TestParser.new.root) == Parsers::ParserReference(Syntaks::Token)
+      assert typeof(TestParser.new.root) == Parsers::ParserReference(Syntaks::Token, Syntaks::Token)
       assert TestParser.new.call("second").success?
       assert TestParser.new.call("xyz").success?
       assert !TestParser.new.call("aaa").success?
