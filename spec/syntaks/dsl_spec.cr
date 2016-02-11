@@ -9,13 +9,17 @@ module SyntaksDSLTests
         sequence(str("first"), space, str("last"))
       end
 
-      token(:space, /\s+/)
+      ignored_token(:space, /\s+/)
     end
 
     def test_types
-      assert typeof(TestParser.new.root) == Syntaks::Parsers::ParserReference({Syntaks::Token,{Nil,Syntaks::Token}},{Syntaks::Token,{Nil,Syntaks::Token}})
-      assert typeof(TestParser.new.space) == Syntaks::Parsers::ParserReference(Nil, Nil)
+      assert typeof(TestParser.new.root) == Syntaks::Parsers::ParserReference({Syntaks::Token,{Nil,Syntaks::Token}})
+      assert typeof(TestParser.new.space) == Syntaks::Parsers::ParserReference(Nil)
+    end
+
+    def test_parsing
       assert TestParser.new.call("first   last").success?
+      assert !TestParser.new.call("first").success?
     end
   end
 
@@ -24,18 +28,38 @@ module SyntaksDSLTests
       include Syntaks::DSL
 
       rule(:root) do
-        alternatives(str("first"), str("second"), str("xyz")) do |token|
-          token.content
+        alternatives(string, int) do |int_or_string|
+          int_or_string
         end
+      end
+
+      token(:int, /[1-9][0-9]*/) do |t|
+        t.content.to_i
+      end
+
+      token(:string, /[a-zA-Z]+/) do |t|
+        t.content
       end
 
     end
 
     def test_types
-      assert typeof(TestParser.new.root) == Parsers::ParserReference(String, String)
+      assert typeof(TestParser.new.root) == Parsers::ParserReference(String | Int32)
+      assert typeof(TestParser.new.int) == Parsers::ParserReference(Int32)
+    end
+
+    def test_parsing
       assert TestParser.new.call("second").success?
-      assert TestParser.new.call("xyz").success?
-      assert !TestParser.new.call("aaa").success?
+      assert !TestParser.new.call("$%&").success?
+      assert TestParser.new.call("1332").success?
+    end
+
+    def test_results
+      res = TestParser.new.call("second") as ParseSuccess
+      assert res.value == "second"
+
+      res = TestParser.new.call("1332") as ParseSuccess
+      assert res.value == 1332
     end
   end
 end

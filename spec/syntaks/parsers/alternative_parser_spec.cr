@@ -5,10 +5,10 @@ module AlternativeParserTests
     class TestParser < Syntaks::FullParser
       def root
         @root = AlternativeParser.build(
-          TokenParser.new(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i }),
+          TokenParser.build(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i }),
           AlternativeParser.build(
-            TokenParser.new(/[A-Z]+/),
-            TokenParser.new(/[a-z]+/)
+            TokenParser.build(/[A-Z]+/),
+            TokenParser.build(/[a-z]+/)
           )
         )
       end
@@ -33,16 +33,21 @@ module AlternativeParserTests
       assert !TestParser.new.call("001337").success?
       assert !TestParser.new.call("---asd").success?
     end
+
+    def test_result
+      res = TestParser.new.call("1337") as ParseSuccess
+      assert res.value == 1337
+    end
   end
 
   class ValueGenerationTest < Minitest::Test
     class TestParser < Syntaks::FullParser
       def root
         @root ||= AlternativeParser.build(
-          TokenParser.new(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i }),
+          TokenParser.build(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i }),
           AlternativeParser.build(
-            TokenParser.new(/0\.[0-9]+/, ->(token : Token){ token.content.to_f }),
-            TokenParser.new(/[a-zA-Z]+/, ->(token : Token){ token.content })
+            TokenParser.build(/0\.[0-9]+/, ->(token : Token){ token.content.to_f }),
+            TokenParser.build(/[a-zA-Z]+/, ->(token : Token){ token.content })
           )
         )
       end

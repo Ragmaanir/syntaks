@@ -7,12 +7,12 @@ module SequenceParserTests
 
       def root
         @root ||= SequenceParser.new(
-          TokenParser.new("this "),
+          TokenParser.build("this "),
           SequenceParser.new(
-            TokenParser.new("is "),
+            TokenParser.build("is "),
             SequenceParser.new(
-              TokenParser.new("a "),
-              TokenParser.new("sentence")
+              TokenParser.build("a "),
+              TokenParser.build("sentence")
             )
           )
         )
@@ -20,15 +20,11 @@ module SequenceParserTests
     end
 
     def test_acceptance
-      #r = TestParser.new.call("")
-      #assert r.success?
-      # assert !TestParser.new.call("").success?
-      # assert !TestParser.new.call("this is").success?
       assert TestParser.new.call("this is a sentence").full_match?
     end
 
     def test_partial_match?
-      # assert TestParser.new.call("this is a sentence with some extra stuff").partial_match?
+      assert TestParser.new.call("this is a sentence with some extra stuff").partial_match?
     end
   end
 
@@ -36,18 +32,18 @@ module SequenceParserTests
     class TestParser < Syntaks::FullParser
       def root
         @root ||= SequenceParser.new(
-          TokenParser.new(/[1-9][0-9]*/),
-          TokenParser.new(/[a-z]+/)
+          TokenParser.build(/[1-9][0-9]*/),
+          TokenParser.build(/[a-z]+/)
         ) do |args|
-          {args[0].to_i, args[1]}
+          {args[0].content.to_i, args[1].content}
         end
       end
     end
 
     def test_semantic_action
-      # assert typeof(TestParser.new.root) == Syntaks::Parsers::SequenceParser(String, String, {Int32, String})
-      # res = TestParser.new.call("1337woof") as Syntaks::ParseSuccess
-      # assert res.value == {1337, "woof"}
+      assert typeof(TestParser.new.root) == Syntaks::Parsers::SequenceParser(Token, Token, {Int32, String})
+      res = TestParser.new.call("1337woof") as Syntaks::ParseSuccess
+      assert res.value == {1337, "woof"}
     end
   end
 
@@ -55,20 +51,19 @@ module SequenceParserTests
     class TestParser < Syntaks::FullParser
       def root
         SequenceParser.new(
-          TokenParser.new(/[1-9][0-9]*/),
+          TokenParser.build(/[1-9][0-9]*/),
           SequenceParser.new(
-            TokenParser.new(","),
-            TokenParser.new(/[a-z]+/)
-          )
-        ) do |args|
-          nil
-        end
+            TokenParser.build(","),
+            TokenParser.build(/[a-z]+/)
+          ) do |args|
+            nil
+          end
+        )
       end
     end
 
     def test_nested_actions
-      # assert TestParser.new.call("1337,test").success?
-      # assert typeof(TestParser.new.root.action) == Proc({String, {String, String}}, Nil)
+      assert typeof(TestParser.new.root) == Syntaks::Parsers::SequenceParser(Token, Nil, {Token, Nil})
     end
   end
 

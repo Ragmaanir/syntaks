@@ -2,19 +2,19 @@ require "../parser"
 
 module Syntaks
   module Parsers
-    class ParserReference(X,Y) < Parser(X)
+    class ParserReference(X) < Parser(X)
 
       getter name
 
       def self.build(name : String | Symbol, referenced_parser : -> Parser(X))
-        ParserReference(X,X).new(name, referenced_parser, ->(x : X) { x })
+        ParserReference(X).new(name, referenced_parser)
       end
 
-      def self.build(name : String | Symbol, referenced_parser : -> Parser(X), callback : X -> Y)
-        ParserReference(X,Y).new(name, referenced_parser, callback)
+      def self.build(name : String | Symbol, referenced_parser : -> Parser(X))
+        ParserReference(X).new(name, referenced_parser)
       end
 
-      def initialize(@name : String | Symbol, @referenced_parser : -> Parser(X), @callback : X -> Y)
+      def initialize(@name : String | Symbol, @referenced_parser : -> Parser(X))
       end
 
       def call(state : ParseState)

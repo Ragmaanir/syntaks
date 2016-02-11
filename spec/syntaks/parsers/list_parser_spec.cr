@@ -6,8 +6,8 @@ module ListParserTests
       def root
         @root ||= ListParser({Token, Int32}).new(
           SequenceParser.new(
-            TokenParser.new(/[+-]/),
-            TokenParser.new(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i })
+            TokenParser.build(/[+-]/),
+            TokenParser.build(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i })
           )
         )
       end
@@ -27,6 +27,11 @@ module ListParserTests
       assert !TestParser.new.call("").success?
       assert !TestParser.new.call("1337").success?
       assert !TestParser.new.call("yes").success?
+    end
+
+    def test_result
+      res = TestParser.new.call("+1337") as ParseSuccess
+      assert res.value.first[1] == 1337
     end
   end
 end

@@ -5,8 +5,8 @@ module NotPredicateTests
     class TestParser < Syntaks::FullParser
       def root
         @root = SequenceParser.new(
-          NotPredicate.new(TokenParser.new("end")),
-          TokenParser.new(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i }),
+          NotPredicate.new(TokenParser.build("end")),
+          TokenParser.build(/[1-9][0-9]*/, ->(token : Token){ token.content.to_i }),
         )
       end
     end

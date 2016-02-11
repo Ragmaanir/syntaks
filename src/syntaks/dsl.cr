@@ -6,7 +6,7 @@ module Syntaks
     include Syntaks::Parsers
 
     def str(s : String | Regex)
-      TokenParser.new(s)
+      TokenParser.build(s)
     end
 
     def optional(parser : Parser(T))
@@ -77,31 +77,35 @@ module Syntaks
       {% end %}
     end
 
-    macro token(name, arg)
-      #TokenParser(Nil).new({{arg}}, ->(s : String){ nil })
-      def {{name.id}}
-        @{{name.id}} ||= ParserReference.build "{{name.id}}", ->{
-          TokenParser(Nil).new({{arg}}, ->(s : Syntaks::Token){ nil })
-        }
+    macro token(name, arg, cls)
+      token({{name}}, {{arg}}) do |t|
+        {{cls}}.new(t)
       end
     end
 
-    # macro token(arg, t)
-    #   TokenParser({{t.id}}).new({{arg}}, ->(s : String){ {{t.id}}.new(s) })
-    # end
-
-    macro token(name, arg, t)
-      def {{name.id}}
-        @{{name.id}} ||= ParserReference.build "{{name.id}}", ->{
-          TokenParser({{t.id}}).new({{arg}}, ->(s : Syntaks::Token){ {{t.id}}.new(s) })
-        }
-      end
+    macro token(name, arg, &block_or_class)
+      {% if block_or_class.is_a?(Nop) %}
+        def {{name.id}}
+          @{{name.id}} ||= ParserReference.build "{{name.id}}", ->{
+            TokenParser.build({{arg}})
+          }
+        end
+      {% else %}
+        def {{name.id}}
+          @{{name.id}} ||= ParserReference.build "{{name.id}}", ->{
+            TokenParser.build({{arg}}, ->(s : Syntaks::Token){
+              {{block_or_class.args.argify}} = s
+              {{yield}}
+            })
+          }
+        end
+      {% end %}
     end
 
     macro ignored_token(name, arg)
       def {{name.id}}
         @{{name.id}} ||= ParserReference.build "{{name.id}}", ->{
-          TokenParser(Nil).new({{arg}}, ->(s : Syntaks::Token){ nil })
+          TokenParser(Nil).build({{arg}}, ->(s : Syntaks::Token){ nil })
         }
       end
     end

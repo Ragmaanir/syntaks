@@ -2,29 +2,33 @@ module Syntaks
   module Parsers
 
     class TokenParser(T) < Parser(T)
-      getter token
+      getter matcher
 
-      def self.new(token : String | Regex)
-        TokenParser(Token).new(token, ->(t : Token){ t })
+      def self.build(matcher : String | Regex)
+        TokenParser(Token).new(matcher, ->(t : Token){ t })
       end
 
-      def initialize(@token : String | Regex, @action : Token -> T)
+      def self.build(matcher : String | Regex, action : Token -> T)
+        TokenParser(T).new(matcher, action)
       end
 
-      #def call(state : ParseState) : ParseResult(T)
+      def initialize(@matcher : String | Regex, @action : Token -> T)
+      end
+
       def call(state : ParseState)
-        parsed_text = case t = @token
-        when String
-          t if state.remaining_text.starts_with?(t)
-        when Regex
-          if m = Regex.new("\\A"+t.source).match(state.remaining_text)
-            m[0]
-          end
+        parsed_text = case m = matcher
+          when String
+            m if state.remaining_text.starts_with?(m)
+          when Regex
+            if r = Regex.new("\\A"+m.source).match(state.remaining_text)
+              r[0]
+            end
         end
 
         if parsed_text
           end_state = state.forward(parsed_text.size)
-          value = @action.call(Token.new(state.interval(parsed_text.size)))
+          token = Token.new(state.interval(parsed_text.size))
+          value = @action.call(token)
           succeed(state, end_state, value)
         else
           fail(state)
@@ -32,11 +36,11 @@ module Syntaks
       end
 
       def to_ebnf
-        @token.inspect
+        matcher.inspect
       end
 
       def to_structure
-        "TokenParser(#{@token.inspect})"
+        "TokenParser(#{matcher.inspect})"
       end
 
     end

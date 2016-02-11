@@ -29,21 +29,21 @@ module ParserTests
 
       def root
         SequenceParser.new(
-          TokenParser.new("["),
+          TokenParser.build("["),
           SequenceParser.new(
             args,
-            TokenParser.new("]")
+            TokenParser.build("]")
           ),
          ->(args : {Token, {Array(Literal), Token}}){ Root.new(Arguments.new(args[1][0])) }
         )
       end
 
       def args
-        ListParser(Literal).new(literal, TokenParser.new(","))
+        ListParser(Literal).new(literal, TokenParser.build(","))
       end
 
       def literal
-        TokenParser(Literal).new(/[1-9][0-9]*/, ->(s : Token){ Literal.new(s.content) })
+        TokenParser(Literal).build(/[1-9][0-9]*/, ->(s : Token){ Literal.new(s.content) })
       end
     end
 
@@ -118,13 +118,13 @@ module ParserTests
       end
 
       def terminal_add_exp
-        @terminal_add_exp ||= ParserReference(AddExp | Literal, AddExp | Literal).build "terminal_add_exp", ->{
+        @terminal_add_exp ||= ParserReference(AddExp | Literal).build "terminal_add_exp", ->{
           AlternativeParser.build(par_exp, literal)
         }
       end
 
       def par_exp
-        @par_exp ||= ParserReference(AddExp, AddExp).build "par_exp", ->{
+        @par_exp ||= ParserReference(AddExp).build "par_exp", ->{
           SequenceParser(Nil, {AddExp, Nil}, AddExp).new(
             StringParser.new("("),
             SequenceParser.new(
