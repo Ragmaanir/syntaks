@@ -115,5 +115,12 @@ module Syntaks
         @{{name.id}} ||= ParserReference.build "{{name.id}}", ->{ {{yield}} }
       end
     end
+
+    macro transform(name, referenced_rule, &trans)
+      rule({{name.id}}) do
+        TransformParser.build({{referenced_rule}}) {{trans}}
+      end
+    end
+
   end
 end

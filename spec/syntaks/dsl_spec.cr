@@ -62,4 +62,25 @@ module SyntaksDSLTests
       assert res.value == 1332
     end
   end
+
+  class TransformMacroTests < Minitest::Test
+    class TestParser < Syntaks::FullParser
+      include Syntaks::DSL
+
+      rule(:root) do
+        trans
+      end
+
+      transform(:trans, int) do |t|
+        t.content.to_i
+      end
+
+      token(:int, /[1-9][0-9]*/)
+    end
+
+    def test_result
+      res = TestParser.new.call("123") as ParseSuccess
+      assert res.value == 123
+    end
+  end
 end
