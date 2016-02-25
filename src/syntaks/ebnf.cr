@@ -50,7 +50,16 @@ module Syntaks
     end
 
     class Rep < Component
+      getter rule
       def initialize(@rule)
+      end
+
+      def ==(other : Rep)
+        other.rule == rule
+      end
+
+      def inspect(io)
+        io << "#{short_name}(#{rule.inspect})"
       end
     end
 
@@ -78,21 +87,21 @@ module Syntaks
         res = if t == "Call"
           argname = "#{arg.name}"
           if arg.receiver && [">>", "&"].includes?(argname)
-            "Seq.new([to_ebnf(#{arg.receiver}), to_ebnf(#{arg.args.first})])".id
+            "Seq.new([to_ebnf(#{arg.receiver}), to_ebnf(#{arg.args.first})])"
           elsif argname == "|"
-            "Alt.new([to_ebnf(#{arg.receiver}), to_ebnf(#{arg.args.first})])".id
+            "Alt.new([to_ebnf(#{arg.receiver}), to_ebnf(#{arg.args.first})])"
           elsif argname == "~"
-            "Opt.new(to_ebnf(#{arg.receiver}))".id
+            "Opt.new(to_ebnf(#{arg.receiver}))"
           else
-            "NonTerminal.new(\"#{arg.name}\")".id
+            "NonTerminal.new(\"#{arg.name}\")"
           end
-        elsif t == "Var"
-          arg.name
+        elsif t == "TupleLiteral"
+          "Rep.new(to_ebnf(#{arg[0]}))"
         else
-          "NonTerminal.new(\"#{arg}\")".id
+          "NonTerminal.new(\"#{arg}\")"
         end
       %}
-      {{res}}
+      {{res.id}}
     end
 
     macro classof(exp)

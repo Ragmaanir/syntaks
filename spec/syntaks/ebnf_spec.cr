@@ -25,6 +25,11 @@ module EBNFTests
       assert_equal Alt.new([Alt.new([na, nb]), nc]), rule(:abc, a | b | c)
     end
 
+    def test_repetition
+      na, nb = {:a, :b}.map{ |n| NonTerminal.new(n.to_s) }
+      assert_equal Rep.new(Seq.new([na, nb])), rule(:abc, {a >> b})
+    end
+
     def test_mixture
       na, nb, nc, nd = {:a, :b, :c, :d}.map{ |n| NonTerminal.new(n.to_s) }
       assert_equal Alt.new([Seq.new([na, nb]), Opt.new(Seq.new([nc, nd]))]), rule(:abc, (a >> b) | ~(c >> d))
