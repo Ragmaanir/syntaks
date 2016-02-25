@@ -1,43 +1,61 @@
 module Syntaks
   module EBNF
 
-    abstract class Component
+    abstract class Component(V)
       def short_name
         self.class.name.split("::").last
       end
     end
 
-    class Seq < Component
-      getter items
-      def initialize(@items : Array)
+    class Seq(L,R,V) < Component(V)
+      getter left, right
+
+      def self.build(left : Component(L), right : Component(R), action : (L,R) -> V)
+        new(left, right, action)
+      end
+
+      def self.build(left : Component(L), right : Component(R))
+        Seq(L, R, {L,R}).new(left, right, ->(l : L, r : R){ {l,r} })
+      end
+
+      def initialize(@left : Component(L), @right : Component(R), @action : (L,R) -> V)
       end
 
       def ==(other : Seq)
-        other.items == items
+        other.left == left && other.right == right
       end
 
       def inspect(io)
-        io << "#{short_name}(#{items})"
+        io << "#{short_name}(#{left}, #{right})"
       end
     end
 
-    class Alt < Component
-      getter items
-      def initialize(@items : Array)
+    class Alt(L,R,V) < Component(V)
+      getter left, right
+
+      def self.build(*args)
+        new(*args)
+      end
+
+      def self.build(left : Component(L), right : Component(R))
+        Alt(L,R, L | R).new(left, right, ->(r : L | R){ r })
+      end
+
+      def initialize(@left : Component(L), @right : Component(R), @action : (L | R) -> V)
       end
 
       def ==(other : Alt)
-        other.items == items
+        other.left == left && other.right == right
       end
 
       def inspect(io)
-        io << "#{short_name}(#{items})"
+        io << "#{short_name}(#{left}, #{right})"
       end
     end
 
-    class Opt < Component
+    class Opt(V) < Component(V?)
       getter rule
-      def initialize(@rule)
+      def initialize(@rule : Component(V))
       end
 
       def ==(other : Opt)
@@ -49,9 +67,9 @@ module Syntaks
       end
     end
 
-    class Rep < Component
+    class Rep(V) < Component(Array(V))
       getter rule
-      def initialize(@rule)
+      def initialize(@rule : Component(V))
       end
 
       def ==(other : Rep)
@@ -63,9 +81,9 @@ module Syntaks
       end
     end
 
-    class NonTerminal < Component
-      getter name
-      def initialize(@name : String)
+    class NonTerminal(V) < Component(V)
+      getter name, referenced_rule
+      def initialize(@name : String, @referenced_rule : -> Component(V))
       end
 
       def ==(other : NonTerminal)
@@ -74,6 +92,20 @@ module Syntaks
 
       def inspect(io)
         io << name
+      end
+    end
+
+    class Terminal < Component(String)
+      getter matcher
+      def initialize(@matcher : String | Regex)
+      end
+
+      def ==(other : Terminal)
+        other.matcher == matcher
+      end
+
+      def inspect(io)
+        io << matcher
       end
     end
 
@@ -87,18 +119,18 @@ module Syntaks
         res = if t == "Call"
           argname = "#{arg.name}"
           if arg.receiver && [">>", "&"].includes?(argname)
-            "Seq.new([to_ebnf(#{arg.receiver}), to_ebnf(#{arg.args.first})])"
+            "Seq.build(to_ebnf(#{arg.receiver}), to_ebnf(#{arg.args.first}))"
           elsif argname == "|"
-            "Alt.new([to_ebnf(#{arg.receiver}), to_ebnf(#{arg.args.first})])"
+            "Alt.build(to_ebnf(#{arg.receiver}), to_ebnf(#{arg.args.first}))"
           elsif argname == "~"
             "Opt.new(to_ebnf(#{arg.receiver}))"
           else
-            "NonTerminal.new(\"#{arg.name}\")"
+            "NonTerminal.new(\"#{arg.name}\", ->{ #{arg.name} })"
           end
         elsif t == "TupleLiteral"
           "Rep.new(to_ebnf(#{arg[0]}))"
         else
-          "NonTerminal.new(\"#{arg}\")"
+          "NonTerminal.new(\"#{arg}\", ->{ #{arg} })"
         end
       %}
       {{res.id}}

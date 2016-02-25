@@ -5,34 +5,49 @@ module EBNFTests
     include EBNF
 
     def test_nonterminal_equality
-      assert NonTerminal.new("a") == NonTerminal.new("a")
-      assert NonTerminal.new("a") != NonTerminal.new("b")
+      a = ->{ Terminal.new("a") }
+      b = ->{ Terminal.new("b") }
+      assert NonTerminal.new("a", a) == NonTerminal.new("a", a)
+      assert NonTerminal.new("a", a) != NonTerminal.new("b", b)
+
+      assert NonTerminal.new("a", a) == NonTerminal.new("a", b)
+      assert NonTerminal.new("a", a) != NonTerminal.new("b", a)
+    end
+
+    def a
+      @a ||= NonTerminal.new("a", ->{ Terminal.new("a") })
+    end
+
+    def b
+      @b ||= NonTerminal.new("b", ->{ Terminal.new("b") })
+    end
+
+    def c
+      @c ||= NonTerminal.new("c", ->{ Terminal.new("c") })
+    end
+
+    def d
+      @d ||= NonTerminal.new("d", ->{ Terminal.new("d") })
     end
 
     def test_sequence
-      na, nb, nc = {:a, :b, :c}.map{ |n| NonTerminal.new(n.to_s) }
-
-      assert_equal Seq.new([Seq.new([na, nb]), nc]), rule(:xyz, a >> b >> c)
+      assert_equal Seq.build(Seq.build(a, b), c), rule(:xyz, a >> b >> c)
     end
 
     def test_optional
-      na, nb, nc = {:a, :b, :c}.map{ |n| NonTerminal.new(n.to_s) }
-      assert_equal Seq.new([Seq.new([na, nb]), Opt.new(nc)]), rule(:abc, a >> b >> ~c)
+      assert_equal Seq.build(Seq.build(a, b), Opt.new(c)), rule(:abc, a >> b >> ~c)
     end
 
     def test_alternatives
-      na, nb, nc = {:a, :b, :c}.map{ |n| NonTerminal.new(n.to_s) }
-      assert_equal Alt.new([Alt.new([na, nb]), nc]), rule(:abc, a | b | c)
+      assert_equal Alt.build(Alt.build(a, b), c), rule(:abc, a | b | c)
     end
 
     def test_repetition
-      na, nb = {:a, :b}.map{ |n| NonTerminal.new(n.to_s) }
-      assert_equal Rep.new(Seq.new([na, nb])), rule(:abc, {a >> b})
+      assert_equal Rep.new(Seq.build(a, b)), rule(:abc, {a >> b})
     end
 
     def test_mixture
-      na, nb, nc, nd = {:a, :b, :c, :d}.map{ |n| NonTerminal.new(n.to_s) }
-      assert_equal Alt.new([Seq.new([na, nb]), Opt.new(Seq.new([nc, nd]))]), rule(:abc, (a >> b) | ~(c >> d))
+      assert_equal Alt.build(Seq.build(a, b), Opt.new(Seq.build(c, d))), rule(:abc, (a >> b) | ~(c >> d))
     end
 
     # Version A
