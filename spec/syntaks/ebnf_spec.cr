@@ -31,23 +31,44 @@ module EBNFTests
     end
 
     def test_sequence
-      assert_equal Seq.build(Seq.build(a, b), c), rule(:xyz, a >> b >> c)
+      assert_equal Seq.build(Seq.build(a, b), c), build_ebnf(a >> b >> c)
     end
 
     def test_optional
-      assert_equal Seq.build(Seq.build(a, b), Opt.new(c)), rule(:abc, a >> b >> ~c)
+      assert_equal Seq.build(Seq.build(a, b), Opt.new(c)), build_ebnf(a >> b >> ~c)
     end
 
     def test_alternatives
-      assert_equal Alt.build(Alt.build(a, b), c), rule(:abc, a | b | c)
+      assert_equal Alt.build(Alt.build(a, b), c), build_ebnf(a | b | c)
     end
 
     def test_repetition
-      assert_equal Rep.new(Seq.build(a, b)), rule(:abc, {a >> b})
+      assert_equal Rep.new(Seq.build(a, b)), build_ebnf({a >> b})
     end
 
     def test_mixture
-      assert_equal Alt.build(Seq.build(a, b), Opt.new(Seq.build(c, d))), rule(:abc, (a >> b) | ~(c >> d))
+      assert_equal Alt.build(Seq.build(a, b), Opt.new(Seq.build(c, d))), build_ebnf((a >> b) | ~(c >> d))
+    end
+
+    def test_terminals
+      assert_equal Seq.build(a, Terminal.new("test")), build_ebnf(a >> "test")
+    end
+
+    def test_to_s
+      ebnf = build_ebnf({a >> b})
+      assert ebnf.to_s == "{a >> b}"
+
+      ebnf = build_ebnf(a >> b >> c)
+      assert ebnf.to_s == "a >> b >> c"
+
+      ebnf = build_ebnf(a >> b | c)
+      #assert ebnf.to_s == "(a >> b) | c" # FIXME
+
+      ebnf = build_ebnf(a >> ~b >> ~(c | d))
+      assert ebnf.to_s == "a >> ~b >> ~(c | d)"
+
+      ebnf = build_ebnf(a >> "test" >> /test2/)
+      assert ebnf.to_s == "a >> \"test\" >> /test2/"
     end
 
     # Version A

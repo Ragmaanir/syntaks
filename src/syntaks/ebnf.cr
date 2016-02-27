@@ -5,6 +5,8 @@ module Syntaks
       def short_name
         self.class.name.split("::").last
       end
+
+      abstract def simple? : Boolean
     end
 
     class Seq(L,R,V) < Component(V)
@@ -21,8 +23,16 @@ module Syntaks
       def initialize(@left : Component(L), @right : Component(R), @action : (L,R) -> V)
       end
 
+      def simple?
+        false
+      end
+
       def ==(other : Seq)
         other.left == left && other.right == right
+      end
+
+      def to_s(io)
+        io << "#{left} >> #{right}"
       end
 
       def inspect(io)
@@ -44,8 +54,16 @@ module Syntaks
       def initialize(@left : Component(L), @right : Component(R), @action : (L | R) -> V)
       end
 
+      def simple?
+        false
+      end
+
       def ==(other : Alt)
         other.left == left && other.right == right
+      end
+
+      def to_s(io)
+        io << "#{left} | #{right}"
       end
 
       def inspect(io)
@@ -58,8 +76,21 @@ module Syntaks
       def initialize(@rule : Component(V))
       end
 
+      def simple?
+        true
+      end
+
       def ==(other : Opt)
         other.rule == rule
+      end
+
+      def to_s(io)
+        str = if rule.simple?
+          "~#{rule}"
+        else
+          "~(#{rule})"
+        end
+        io << str
       end
 
       def inspect(io)
@@ -72,8 +103,16 @@ module Syntaks
       def initialize(@rule : Component(V))
       end
 
+      def simple?
+        true
+      end
+
       def ==(other : Rep)
         other.rule == rule
+      end
+
+      def to_s(io)
+        io << "{#{rule}}"
       end
 
       def inspect(io)
@@ -86,8 +125,16 @@ module Syntaks
       def initialize(@name : String, @referenced_rule : -> Component(V))
       end
 
+      def simple?
+        true
+      end
+
       def ==(other : NonTerminal)
         other.name == name
+      end
+
+      def to_s(io)
+        io << name
       end
 
       def inspect(io)
@@ -100,35 +147,45 @@ module Syntaks
       def initialize(@matcher : String | Regex)
       end
 
+      def simple?
+        true
+      end
+
       def ==(other : Terminal)
         other.matcher == matcher
       end
 
+      def to_s(io)
+        io << matcher.inspect
+      end
+
       def inspect(io)
-        io << matcher
+        io << matcher.inspect
       end
     end
 
     macro rule(name, sequence)
-      to_ebnf({{sequence}})
+      build_ebnf({{sequence}})
     end
 
-    macro to_ebnf(arg)
+    macro build_ebnf(arg)
       {%
         t = arg.class_name
         res = if t == "Call"
           argname = "#{arg.name}"
           if arg.receiver && [">>", "&"].includes?(argname)
-            "Seq.build(to_ebnf(#{arg.receiver}), to_ebnf(#{arg.args.first}))"
+            "Seq.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
           elsif argname == "|"
-            "Alt.build(to_ebnf(#{arg.receiver}), to_ebnf(#{arg.args.first}))"
+            "Alt.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
           elsif argname == "~"
-            "Opt.new(to_ebnf(#{arg.receiver}))"
+            "Opt.new(build_ebnf(#{arg.receiver}))"
           else
             "NonTerminal.new(\"#{arg.name}\", ->{ #{arg.name} })"
           end
         elsif t == "TupleLiteral"
-          "Rep.new(to_ebnf(#{arg[0]}))"
+          "Rep.new(build_ebnf(#{arg[0]}))"
+        elsif %w{StringLiteral RegexLiteral}.includes?(t)
+          "Terminal.new(#{arg})"
         else
           "NonTerminal.new(\"#{arg}\", ->{ #{arg} })"
         end
@@ -136,6 +193,7 @@ module Syntaks
       {{res.id}}
     end
 
+    # DEBUG
     macro classof(exp)
       {% t = exp.class_name %}
       puts "CLASS: {{t.id}} EXP: {{exp.id}}"
