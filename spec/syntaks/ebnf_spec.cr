@@ -5,30 +5,19 @@ module EBNFTests
     include EBNF
 
     def test_nonterminal_equality
-      a = ->{ Terminal.new("a") }
-      b = ->{ Terminal.new("b") }
-      assert NonTerminal.new("a", a) == NonTerminal.new("a", a)
-      assert NonTerminal.new("a", a) != NonTerminal.new("b", b)
+      a = ->{ Terminal.build("a") }
+      b = ->{ Terminal.build("b") }
+      assert NonTerminal.build("a", a) == NonTerminal.build("a", a)
+      assert NonTerminal.build("a", a) != NonTerminal.build("b", b)
 
-      assert NonTerminal.new("a", a) == NonTerminal.new("a", b)
-      assert NonTerminal.new("a", a) != NonTerminal.new("b", a)
+      assert NonTerminal.build("a", a) == NonTerminal.build("a", b)
+      assert NonTerminal.build("a", a) != NonTerminal.build("b", a)
     end
 
-    def a
-      @a ||= NonTerminal.new("a", ->{ Terminal.new("a") })
-    end
-
-    def b
-      @b ||= NonTerminal.new("b", ->{ Terminal.new("b") })
-    end
-
-    def c
-      @c ||= NonTerminal.new("c", ->{ Terminal.new("c") })
-    end
-
-    def d
-      @d ||= NonTerminal.new("d", ->{ Terminal.new("d") })
-    end
+    rule(:a, "a")
+    rule(:b, "b")
+    rule(:c, "c")
+    rule(:d, "d")
 
     def test_sequence
       assert_equal Seq.build(Seq.build(a, b), c), build_ebnf(a >> b >> c)
@@ -51,7 +40,7 @@ module EBNFTests
     end
 
     def test_terminals
-      assert_equal Seq.build(a, Terminal.new("test")), build_ebnf(a >> "test")
+      assert_equal Seq.build(a, Terminal.build("test")), build_ebnf(a >> "test")
     end
 
     def test_to_s
@@ -71,16 +60,37 @@ module EBNFTests
       assert ebnf.to_s == "a >> \"test\" >> /test2/"
     end
 
-    # Version A
-    # sequence: a >> b >> c
-    # alternatives: a | b | c
-    # option: [a] or ~a
-    # repetition: {a}
+    rule(:x, "int " >> /[1-9][0-9]+/) do |v|
+      v[1].content.to_i
+    end
 
-    # Version B
-    # sequence: [a, b, c]
-    # alternatives: a | b | c
-    # option: ~a
-    # repetition: {a}
+    def test_actions
+      r = x.call(State.new(Source.new("int 110"), 0)) as Success
+      assert r.value == 110
+    end
+
+    def test_parsing
+      r = build_ebnf(a >> a >> a)
+      s = r.call(State.new(Source.new("aaaaa"), 0)) as Success
+
+      r = build_ebnf(a >> {a >> a})
+      s = r.call(State.new(Source.new("aaaaa"), 0)) as Success
+
+      r = build_ebnf(b | a)
+      s = r.call(State.new(Source.new("aaaaa"), 0)) as Success
+    end
+
+    def test_optional
+      r = build_ebnf(~a)
+
+      s = r.call(State.new(Source.new("a"), 0)) as Success
+      assert s.success?
+      assert s.end_state.at == 1
+
+      s = r.call(State.new(Source.new("b"), 0)) as Success
+      assert s.success?
+      assert s.end_state.at == 0
+    end
+
   end
 end
