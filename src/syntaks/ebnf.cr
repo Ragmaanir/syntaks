@@ -1,165 +1,6 @@
 module Syntaks
   module EBNF
 
-    class Source
-      getter content
-
-      delegate size, content
-      def initialize(@content : String)
-      end
-
-      def [](from, length)
-        content[from, length]
-      end
-
-      def [](range : Range)
-        content[range]
-      end
-    end
-
-    class Token
-      getter interval
-
-      def initialize(@interval : SourceInterval)
-      end
-
-      def content
-        interval.content
-      end
-
-      def to_s(io)
-        io << "Token(#{interval}, #{content.inspect})"
-      end
-
-      def inspect(io)
-        to_s(io)
-      end
-    end
-
-    class SourceInterval
-
-      include Kontrakt
-
-      getter source, from, length
-
-      def initialize(@source : Source, @from : Int, @length=0 : Int)
-        precondition(from >= 0)
-        precondition(length >= 0)
-      end
-
-      def from_location
-        SourceLocation.new(source, from)
-      end
-
-      def to_location
-        SourceLocation.new(source, to)
-      end
-
-      def to
-        from + length - 1
-      end
-
-      def content
-        source[from..to]
-      end
-
-      def to_s(io)
-        io << "SourceInterval(#{from_location},#{to_location})"
-      end
-
-      def inspect(io)
-        to_s(io)
-      end
-
-    end
-
-    class SourceLocation
-      include Kontrakt
-
-      getter source, at
-
-      def initialize(@source : Source, @at : Int)
-        precondition(at >= 0)
-      end
-
-      def line_number
-        source[0..at].count("\n")
-      end
-
-      def column_number
-        at - (source[0..at].rindex("\n") || 0)
-      end
-
-      def line
-        source[line_start..line_end]
-      end
-
-      def line_start
-        @line_start ||= source[0..at].rindex("\n") || 0
-      end
-
-      def line_end
-        @line_end ||= line_start + (source[line_start..-1].index("\n") || 0)
-      end
-
-      def to_s(io)
-        io << "#{line_number}:#{column_number}"
-      end
-    end
-
-    class State
-      include Kontrakt
-      getter source, at
-
-      def initialize(@source : Source, @at : Int)
-        precondition(at <= source.size)
-      end
-
-      def remaining_text
-        source.content[at..-1]
-      end
-
-      def advance(n : Int)
-        State.new(source, at + n)
-      end
-
-      def interval(length : Int)
-        SourceInterval.new(source, at, length)
-      end
-
-      def to_s(io)
-        io << "State(#{at})"
-      end
-
-      def inspect(io)
-        to_s(io)
-      end
-    end
-
-    abstract class Result
-      def success? : Boolean
-        false
-      end
-    end
-
-    class Success(V) < Result
-      getter value : V
-      getter end_state : State
-
-      def initialize(@end_state : State, @value : V)
-      end
-
-      def success?
-        true
-      end
-    end
-
-    class Failure < Result
-    end
-
-    class Error < Result
-    end
-
     abstract class Component(V)
       def short_name
         self.class.name.split("::").last
@@ -329,11 +170,11 @@ module Syntaks
       getter name, referenced_rule, action
 
       def self.build(name : String, referenced_rule : -> Component(R))
-        new(name, referenced_rule, ->(r : R) { r })
+        NonTerminal(R, R).new(name, referenced_rule, ->(r : R) { r })
       end
 
       def self.build(name : String, referenced_rule : -> Component(R), &action : R -> V)
-        new(name, referenced_rule, action)
+        NonTerminal(R, V).new(name, referenced_rule, action)
       end
 
       def initialize(@name : String, @referenced_rule : -> Component(R), @action : R -> V)
@@ -423,7 +264,14 @@ module Syntaks
 
     # macro rule(name, sequence, &action)
     #   def {{name.id}}
-    #     @{{name.id}} ||= NonTerminal.build("{{name.id}}", ->{ build_ebnf({{sequence}}) }, {{action}})
+    #     @{{name.id}} ||= NonTerminal.build(
+    #       "{{name.id}}",
+    #       ->{ build_ebnf({{sequence}}) }
+    #     ) {% if action.class_name == "Block" %}do |__args|
+    #       {{*action.args}} = flatten_tuple(__args)
+    #       {{action.body}}
+    #     end
+    #     {% end %}
     #   end
     # end
 

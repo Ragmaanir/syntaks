@@ -1,5 +1,29 @@
 module Syntaks
 
+  abstract class Result
+    def success? : Boolean
+      false
+    end
+  end
+
+  class Success(V) < Result
+    getter value : V
+    getter end_state : State
+
+    def initialize(@end_state : State, @value : V)
+    end
+
+    def success?
+      true
+    end
+  end
+
+  class Failure < Result
+  end
+
+  class Error < Result
+  end
+
   abstract class ParseResult
     getter state, parser
 

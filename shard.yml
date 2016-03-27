@@ -7,7 +7,7 @@ authors:
 dependencies:
   kontrakt:
     github: ragmaanir/kontrakt
-    version: ~> 0.1
+    version: ~> 0.2
 
 development_dependencies:
   minitest:

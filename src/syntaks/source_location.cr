@@ -1,11 +1,14 @@
 module Syntaks
   class SourceLocation
+
     include Kontrakt
 
-    getter source, at
+    getter source : Source
+    getter at : Int32
 
     def initialize(@source : Source, @at : Int)
       precondition(at >= 0)
+      precondition(at < source.size)
     end
 
     def line_number
@@ -31,5 +34,6 @@ module Syntaks
     def to_s(io)
       io << "#{line_number}:#{column_number}"
     end
+
   end
 end

@@ -3,11 +3,14 @@ module Syntaks
 
     include Kontrakt
 
-    getter source, from, length
+    getter source : Source
+    getter from   : Int32
+    getter length : Int32
 
-    def initialize(@source : Source, @from : Int, @length=0 : Int)
+    def initialize(@source : Source, @from : Int, @length : Int = 0)
       precondition(from >= 0)
       precondition(length >= 0)
+      precondition(to < source.size)
     end
 
     def from_location
@@ -28,6 +31,10 @@ module Syntaks
 
     def to_s(io)
       io << "SourceInterval(#{from_location},#{to_location})"
+    end
+
+    def inspect(io)
+      to_s(io)
     end
 
   end

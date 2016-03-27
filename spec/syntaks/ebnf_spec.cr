@@ -70,14 +70,15 @@ module EBNFTests
     end
 
     def test_parsing
+      state = State.new(Source.new("aaaaa"), 0)
       r = build_ebnf(a >> a >> a)
-      s = r.call(State.new(Source.new("aaaaa"), 0)) as Success
+      s = r.call(state) as Success
 
       r = build_ebnf(a >> {a >> a})
-      s = r.call(State.new(Source.new("aaaaa"), 0)) as Success
+      s = r.call(state) as Success
 
       r = build_ebnf(b | a)
-      s = r.call(State.new(Source.new("aaaaa"), 0)) as Success
+      s = r.call(state) as Success
     end
 
     def test_optional
@@ -90,6 +91,11 @@ module EBNFTests
       s = r.call(State.new(Source.new("b"), 0)) as Success
       assert s.success?
       assert s.end_state.at == 0
+    end
+
+    def experiments
+      build_ebnf(a > b) # disable backtracking
+      build_ebnf(a > b > c > !newline) # sync token
     end
 
   end

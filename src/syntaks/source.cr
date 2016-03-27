@@ -1,21 +1,18 @@
 module Syntaks
   class Source
+    
+    getter content
 
-    getter at
-
-    def initialize(@data : String)
+    delegate size, content
+    def initialize(@content : String)
     end
 
     def [](from, length)
-      @data[from, length]
+      content[from, length]
     end
 
     def [](range : Range)
-      @data[range]
-    end
-
-    def length
-      @data.size
+      content[range]
     end
 
   end

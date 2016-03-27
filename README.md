@@ -2,16 +2,6 @@
 
 A recursive descent parser generator framework.
 
-## Installation
-
-Add it to `Projectfile`
-
-```crystal
-deps do
-  github "ragmaanir/syntaks"
-end
-```
-
 ## Usage
 
 ```crystal
