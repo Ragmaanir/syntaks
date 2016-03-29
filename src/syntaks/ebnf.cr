@@ -1,23 +1,29 @@
 module Syntaks
   module EBNF
 
+    abstract class Context
+    end
+
+    class EmptyContext < Context
+    end
+
     abstract class Component(V)
       def short_name
         self.class.name.split("::").last
       end
 
       abstract def simple? : Boolean
-      abstract def call(state : State) : Success(V) | Failure | Error
+      abstract def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
 
-      private def succeed(state : State, value : V) : Success(V)
+      private def succeed(state : State, value : V, ctx : Context) : Success(V)
         Success(V).new(state, value)
       end
 
-      private def fail(state : State) : Failure
+      private def fail(state : State, ctx : Context) : Failure
         Failure.new(state)
       end
 
-      private def error(state : State) : Error
+      private def error(state : State, ctx : Context) : Error
         Error.new(state)
       end
     end
@@ -40,21 +46,21 @@ module Syntaks
       def initialize(@left : Component(L), @right : Component(R), @action : (L,R) -> V)
       end
 
-      def call(state : State) : Success(V) | Failure | Error
-        case lr = left.call(state)
+      def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
+        case lr = left.call(state, ctx)
           when Success
-            case rr = right.call(lr.end_state)
+            case rr = right.call(lr.end_state, ctx)
               when Success
-                succeed(rr.end_state, @action.call(lr.value, rr.value))
+                succeed(rr.end_state, @action.call(lr.value, rr.value), ctx)
               when Failure
-                fail(rr.end_state)
+                fail(rr.end_state, ctx)
               else
-                error(rr.end_state)
+                error(rr.end_state, ctx)
             end
           when Failure
-            fail(state)
+            fail(state, ctx)
           else
-            error(state)
+            error(state, ctx)
         end
       end
 
@@ -89,17 +95,17 @@ module Syntaks
       def initialize(@left : Component(L), @right : Component(R), @action : (L | R) -> V)
       end
 
-      def call(state : State) : Success(V) | Failure | Error
-        case lr = left.call(state)
+      def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
+        case lr = left.call(state, ctx)
         when Success
-          succeed(state, lr.value)
+          succeed(state, lr.value, ctx)
         when Failure
-          case rr = right.call(state)
-          when Success then succeed(state, rr.value)
-          when Failure then fail(rr.end_state)
-          else error(rr.end_state)
+          case rr = right.call(state, ctx)
+          when Success then succeed(state, rr.value, ctx)
+          when Failure then fail(rr.end_state, ctx)
+          else error(rr.end_state, ctx)
           end
-        else error(state)
+        else error(state, ctx)
         end
       end
 
@@ -122,14 +128,15 @@ module Syntaks
 
     class Opt(V) < Component(V?)
       getter rule
+
       def initialize(@rule : Component(V))
       end
 
-      def call(state : State) : Success(V?) | Failure | Error
-        case r = rule.call(state)
-        when Success then succeed(r.end_state, r.value)
-        when Failure then succeed(state, nil)
-        else error(state)
+      def call(state : State, ctx : Context = EmptyContext.new) : Success(V?) | Failure | Error
+        case r = rule.call(state, ctx)
+        when Success then succeed(r.end_state, r.value, ctx)
+        when Failure then succeed(state, nil, ctx)
+        else error(state, ctx)
         end
       end
 
@@ -161,12 +168,12 @@ module Syntaks
       def initialize(@rule : Component(V))
       end
 
-      def call(state : State) : Success(Array(V)) | Failure | Error
+      def call(state : State, ctx : Context = EmptyContext.new) : Success(Array(V)) | Failure | Error
         # FIXME repetition
-        case r = rule.call(state)
-        when Success then succeed(state, [r.value])
-        when Failure then fail(r.end_state)
-        else error(r.end_state)
+        case r = rule.call(state, ctx)
+        when Success then succeed(state, [r.value], ctx)
+        when Failure then fail(r.end_state, ctx)
+        else error(r.end_state, ctx)
         end
       end
 
@@ -201,11 +208,11 @@ module Syntaks
       def initialize(@name : String, @referenced_rule : -> Component(R), @action : R -> V)
       end
 
-      def call(state : State) : Success(V) | Failure | Error
-        r = referenced_rule.call.call(state)
+      def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
+        r = referenced_rule.call.call(state, ctx)
         case r
-        when Success(R) then succeed(r.end_state, action.call(r.value))
-        else fail(state)
+        when Success(R) then succeed(r.end_state, action.call(r.value), ctx)
+        else fail(state, ctx)
         end
       end
 
@@ -240,7 +247,7 @@ module Syntaks
       def initialize(@matcher : String | Regex, @action : Token -> V)
       end
 
-      def call(state : State) : Success(V) | Failure | Error
+      def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
         parsed_text = case m = matcher
           when String
             m if state.remaining_text.starts_with?(m)
@@ -254,9 +261,9 @@ module Syntaks
           end_state = state.advance(parsed_text.size)
           token = Token.new(state.interval(parsed_text.size))
           value = @action.call(token)
-          succeed(end_state, value)
+          succeed(end_state, value, ctx)
         else
-          fail(state)
+          fail(state, ctx)
         end
       end
 
