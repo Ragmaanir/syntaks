@@ -1,7 +1,7 @@
 module Syntaks
   class ParseLog
 
-    class Entry
+    abstract class Entry
       getter rule, from
 
       def initialize(@rule, @from : Int)
