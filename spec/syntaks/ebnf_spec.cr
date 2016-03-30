@@ -93,6 +93,14 @@ module EBNFTests
       assert s.end_state.at == 0
     end
 
+    def test_parse_log
+      source = Source.new("ababa")
+      state = State.new(source, 0)
+      ctx = LoggingContext.new(ParseLog.new(source))
+      r = build_ebnf(a >> {b >> a})
+      s = r.call(state, ctx) as Success
+    end
+
     def experiments
       build_ebnf(a > b) # disable backtracking
       build_ebnf(a > b > c > !newline) # sync token

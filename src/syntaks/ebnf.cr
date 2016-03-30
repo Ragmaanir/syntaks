@@ -2,20 +2,48 @@ module Syntaks
   module EBNF
 
     abstract class Context
+      abstract def on_success(rule : Component, state : State)
+      abstract def on_failure(rule : Component, state : State)
+      abstract def on_error(rule : Component, state : State)
     end
 
     class EmptyContext < Context
+      def on_success(rule : Component, state : State)
+      end
+      def on_failure(rule : Component, state : State)
+      end
+      def on_error(rule : Component, state : State)
+      end
+    end
+
+    class LoggingContext < Context
+      getter parse_log : ParseLog
+
+      def initialize(@parse_log)
+      end
+
+      def on_success(rule : Component, state : State)
+        parse_log.append(ParseLog::Success.new(rule, state.at, state.at)) # FIXME range
+      end
+
+      def on_failure(rule : Component, state : State)
+      end
+
+      def on_error(rule : Component, state : State)
+      end
     end
 
     abstract class Component(V)
       def short_name
-        self.class.name.split("::").last
+        #self.class.name.split("::").last
+        self.class.name.gsub("Syntaks::", "")
       end
 
       abstract def simple? : Boolean
       abstract def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
 
       private def succeed(state : State, value : V, ctx : Context) : Success(V)
+        ctx.on_success(self, state)
         Success(V).new(state, value)
       end
 

@@ -39,22 +39,22 @@ module Syntaks
 
         case entry
           when Started
-            r = entry.rule as(Parsers::ParserReference)
+            r = entry.rule as(EBNF::Component)
             h.highlight(entry.from, :white, :yellow)
             [
-              ["STARTED".colorize(:yellow), ": ", r.to_ebnf_rule.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
+              ["STARTED".colorize(:yellow), ": ", r.to_s.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
               h.to_s
             ].join("\n")
           when Success
             h.highlight(entry.from, entry.to, :white, :green)
             [
-              ["SUCCEEDED".colorize(:green), ": ", entry.rule.to_ebnf.colorize(:blue), " at (#{entry.from}-#{entry.to}):".colorize(:dark_gray)].join,
+              ["SUCCEEDED".colorize(:green), ": ", entry.rule.to_s.colorize(:blue), " at (#{entry.from}-#{entry.to}):".colorize(:dark_gray)].join,
               h.to_s
             ].join("\n")
           when Failure
             h.highlight(entry.from, :white, :red)
             [
-              ["FAILED".colorize(:red), ": ", entry.rule.to_ebnf.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
+              ["FAILED".colorize(:red), ": ", entry.rule.to_s.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
               h.to_s
             ].join("\n")
         end
