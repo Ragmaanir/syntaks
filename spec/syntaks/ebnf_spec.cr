@@ -51,7 +51,7 @@ module EBNFTests
       assert ebnf.to_s == "a >> b >> c"
 
       ebnf = build_ebnf(a >> b | c)
-      #assert ebnf.to_s == "(a >> b) | c" # FIXME
+      #assert ebnf.to_s == "(a >> b) | c" # FIXME: parentheses
 
       ebnf = build_ebnf(a >> ~b >> ~(c | d))
       assert ebnf.to_s == "a >> ~b >> ~(c | d)"
@@ -85,20 +85,19 @@ module EBNFTests
       r = build_ebnf(~a)
 
       s = r.call(State.new(Source.new("a"), 0)) as Success
-      assert s.success?
       assert s.end_state.at == 1
 
       s = r.call(State.new(Source.new("b"), 0)) as Success
-      assert s.success?
       assert s.end_state.at == 0
     end
 
     def test_parse_log
-      source = Source.new("ababa")
+      source = Source.new("ababababa")
       state = State.new(source, 0)
       ctx = LoggingContext.new(ParseLog.new(source))
       r = build_ebnf(a >> {b >> a})
       s = r.call(state, ctx) as Success
+      assert s.end_state.at == source.size
     end
 
     def experiments

@@ -13,9 +13,7 @@ module SyntaksTests
     end
 
     def test_acceptance
-      #assert Parser.new.call("test = 15").success?
-      x = Parser.new.call("test = 15") as Success
-      assert x.success?
+      Parser.new.call("test = 15") as Success
     end
 
   end

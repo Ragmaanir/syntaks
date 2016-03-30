@@ -2,13 +2,16 @@ module Syntaks
   module EBNF
 
     abstract class Context
-      abstract def on_success(rule : Component, state : State)
+      abstract def on_non_terminal(rule : Component, state : State)
+      abstract def on_success(rule : Component, state : State, end_state : State)
       abstract def on_failure(rule : Component, state : State)
       abstract def on_error(rule : Component, state : State)
     end
 
     class EmptyContext < Context
-      def on_success(rule : Component, state : State)
+      def on_non_terminal(rule : Component, state : State)
+      end
+      def on_success(rule : Component, state : State, end_state : State)
       end
       def on_failure(rule : Component, state : State)
       end
@@ -22,14 +25,20 @@ module Syntaks
       def initialize(@parse_log)
       end
 
-      def on_success(rule : Component, state : State)
-        parse_log.append(ParseLog::Success.new(rule, state.at, state.at)) # FIXME range
+      def on_non_terminal(rule : Component, state : State)
+        parse_log.append(ParseLog::Started.new(rule, state.at))
+      end
+
+      def on_success(rule : Component, state : State, end_state : State)
+        parse_log.append(ParseLog::Success.new(rule, state.at, end_state.at))
       end
 
       def on_failure(rule : Component, state : State)
+        parse_log.append(ParseLog::Failure.new(rule, state.at))
       end
 
       def on_error(rule : Component, state : State)
+        # FIXME store parse errors
       end
     end
 
@@ -42,16 +51,18 @@ module Syntaks
       abstract def simple? : Boolean
       abstract def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
 
-      private def succeed(state : State, value : V, ctx : Context) : Success(V)
-        ctx.on_success(self, state)
-        Success(V).new(state, value)
+      private def succeed(state : State, end_state : State, value : V, ctx : Context) : Success(V)
+        ctx.on_success(self, state, end_state)
+        Success(V).new(end_state, value)
       end
 
       private def fail(state : State, ctx : Context) : Failure
+        ctx.on_failure(self, state)
         Failure.new(state)
       end
 
       private def error(state : State, ctx : Context) : Error
+        ctx.on_error(self, state)
         Error.new(state)
       end
     end
@@ -79,7 +90,7 @@ module Syntaks
           when Success
             case rr = right.call(lr.end_state, ctx)
               when Success
-                succeed(rr.end_state, @action.call(lr.value, rr.value), ctx)
+                succeed(state, rr.end_state, @action.call(lr.value, rr.value), ctx)
               when Failure
                 fail(rr.end_state, ctx)
               else
@@ -126,10 +137,10 @@ module Syntaks
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
         case lr = left.call(state, ctx)
         when Success
-          succeed(state, lr.value, ctx)
+          succeed(state, lr.end_state, lr.value, ctx)
         when Failure
           case rr = right.call(state, ctx)
-          when Success then succeed(state, rr.value, ctx)
+          when Success then succeed(state, rr.end_state, rr.value, ctx)
           when Failure then fail(rr.end_state, ctx)
           else error(rr.end_state, ctx)
           end
@@ -162,8 +173,8 @@ module Syntaks
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V?) | Failure | Error
         case r = rule.call(state, ctx)
-        when Success then succeed(r.end_state, r.value, ctx)
-        when Failure then succeed(state, nil, ctx)
+        when Success then succeed(state, r.end_state, r.value, ctx)
+        when Failure then succeed(state, state, nil, ctx)
         else error(state, ctx)
         end
       end
@@ -197,12 +208,24 @@ module Syntaks
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(Array(V)) | Failure | Error
-        # FIXME repetition
-        case r = rule.call(state, ctx)
-        when Success then succeed(state, [r.value], ctx)
-        when Failure then fail(r.end_state, ctx)
-        else error(r.end_state, ctx)
+        next_state = state
+        values = [] of V
+        result = rule.call(next_state, ctx)
+
+        loop do
+          case result
+          when Success
+            values << result.value
+            next_state = result.end_state
+            result = rule.call(next_state, ctx)
+          when Failure
+            break
+          else
+            return error(result.end_state, ctx)
+          end
         end
+
+        succeed(state, result.end_state, values, ctx)
       end
 
       def simple?
@@ -237,9 +260,10 @@ module Syntaks
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
+        ctx.on_non_terminal(self, state)
         r = referenced_rule.call.call(state, ctx)
         case r
-        when Success(R) then succeed(r.end_state, action.call(r.value), ctx)
+        when Success(R) then succeed(state, r.end_state, action.call(r.value), ctx)
         else fail(state, ctx)
         end
       end
@@ -289,7 +313,7 @@ module Syntaks
           end_state = state.advance(parsed_text.size)
           token = Token.new(state.interval(parsed_text.size))
           value = @action.call(token)
-          succeed(end_state, value, ctx)
+          succeed(state, end_state, value, ctx)
         else
           fail(state, ctx)
         end
