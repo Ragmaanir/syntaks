@@ -12,7 +12,8 @@ TODO: Write usage here for library
 
 ## TODO
 
-- EBNF DSL
+- simple token macro
+- rules that do not generate ast nodes
 - selectively disable backtracking
 - error-recovery productions / synchronization tokens
 - optional whitespace skippers
@@ -20,6 +21,11 @@ TODO: Write usage here for library
 - Packrat parsing / memoization
 - remember longest parsed prefix when parsing fails
 - detailed syntax errors: display production that failed and the location where exactly it failed
+
+## DONE
+
+- parse log
+- EBNF DSL
 
 ## Development
 

@@ -14,10 +14,12 @@ module EBNFTests
       assert NonTerminal.build("a", a) != NonTerminal.build("b", a)
     end
 
-    rule(:a, "a")
-    rule(:b, "b")
-    rule(:c, "c")
-    rule(:d, "d")
+    rules do
+      a = "a"
+      b = "b"
+      c = "c"
+      d = "d"
+    end
 
     def test_sequence
       assert_equal Seq.build(Seq.build(a, b), c), build_ebnf(a >> b >> c)
@@ -60,7 +62,7 @@ module EBNFTests
       assert ebnf.to_s == "a >> \"test\" >> /test2/"
     end
 
-    rule(:x, "int " >> /[1-9][0-9]+/) do |v|
+    rule(x = "int " >> /[1-9][0-9]+/) do |v|
       v[1].content.to_i
     end
 
@@ -103,6 +105,29 @@ module EBNFTests
     def experiments
       build_ebnf(a > b) # disable backtracking
       build_ebnf(a > b > c > !newline) # sync token
+    end
+
+  end
+
+  class ExampleParserTest < Minitest::Test
+    class Parser < Syntaks::Parser
+      rules do
+        root      = call
+        call      = "method" >> /\s+/ >> id >> param_list
+        param_list = "(" >> params >> ")"
+        params    = param >> {"," >> param}
+        param     = int_lit | name_lit
+        int_lit   = /\d+/
+        name_lit  = /\w+/
+        id        = /\w+/
+      end
+    end
+
+    def test_acceptance
+      assert Parser.new.call("method test(banana,1337,9001)").is_a?(Success)
+      assert Parser.new.call("method a(1)").is_a?(Success)
+
+      assert Parser.new.call("method test()").is_a?(Failure)
     end
 
   end

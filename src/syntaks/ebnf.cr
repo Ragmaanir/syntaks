@@ -342,6 +342,22 @@ module Syntaks
       end
     end
 
+    macro rule(definition, &action)
+      rule({{definition.target}}, {{definition.value}}) {{action}}
+    end
+
+    macro rules(&block)
+      {% lines = block.body.expressions if block.body.class_name == "Expressions" %}
+      {% lines = [block.body] if block.body.class_name == "Assign" %}
+      {% for d in lines %}
+        {% if d.class_name != "Assign" %}
+          Error: only assignments are allowed, but got a {{d.class_name}}: {{d}}
+        {% else %}
+          rule({{d}})
+        {% end %}
+      {% end %}
+    end
+
     macro build_ebnf(arg)
       {%
         t = arg.class_name
