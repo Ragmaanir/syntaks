@@ -1,6 +1,5 @@
 module Syntaks
   module EBNF
-
     abstract class Context
       abstract def on_non_terminal(rule : Component, state : State)
       abstract def on_success(rule : Component, state : State, end_state : State)
@@ -11,10 +10,13 @@ module Syntaks
     class EmptyContext < Context
       def on_non_terminal(rule : Component, state : State)
       end
+
       def on_success(rule : Component, state : State, end_state : State)
       end
+
       def on_failure(rule : Component, state : State)
       end
+
       def on_error(rule : Component, state : State)
       end
     end
@@ -44,7 +46,7 @@ module Syntaks
 
     abstract class Component(V)
       def short_name
-        #self.class.name.split("::").last
+        # self.class.name.split("::").last
         self.class.name.gsub("Syntaks::", "")
       end
 
@@ -67,39 +69,39 @@ module Syntaks
       end
     end
 
-    class Seq(L,R,V) < Component(V)
+    class Seq(L, R, V) < Component(V)
       getter left, right
 
-      def self.build(left : Component(L), right : Component(R), &action : (L,R) -> V)
-        Seq(L, R, V).new(left, right, ->(l : L, r : R){ action.call(l,r) })
+      def self.build(left : Component(L), right : Component(R), &action : (L, R) -> V)
+        Seq(L, R, V).new(left, right, ->(l : L, r : R) { action.call(l, r) })
       end
 
-      def self.build(left : Component(L), right : Component(R), action : (L,R) -> V)
+      def self.build(left : Component(L), right : Component(R), action : (L, R) -> V)
         new(left, right, action)
       end
 
       def self.build(left : Component(L), right : Component(R))
-        Seq(L, R, {L,R}).new(left, right, ->(l : L, r : R){ {l,r} })
+        Seq(L, R, {L, R}).new(left, right, ->(l : L, r : R) { {l, r} })
       end
 
-      def initialize(@left : Component(L), @right : Component(R), @action : (L,R) -> V)
+      def initialize(@left : Component(L), @right : Component(R), @action : (L, R) -> V)
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
         case lr = left.call(state, ctx)
+        when Success
+          case rr = right.call(lr.end_state, ctx)
           when Success
-            case rr = right.call(lr.end_state, ctx)
-              when Success
-                succeed(state, rr.end_state, @action.call(lr.value, rr.value), ctx)
-              when Failure
-                fail(rr.end_state, ctx)
-              else
-                error(rr.end_state, ctx)
-            end
+            succeed(state, rr.end_state, @action.call(lr.value, rr.value), ctx)
           when Failure
-            fail(state, ctx)
+            fail(rr.end_state, ctx)
           else
-            error(state, ctx)
+            error(rr.end_state, ctx)
+          end
+        when Failure
+          fail(state, ctx)
+        else
+          error(state, ctx)
         end
       end
 
@@ -120,7 +122,7 @@ module Syntaks
       end
     end
 
-    class Alt(L,R,V) < Component(V)
+    class Alt(L, R, V) < Component(V)
       getter left, right
 
       def self.build(*args)
@@ -128,7 +130,7 @@ module Syntaks
       end
 
       def self.build(left : Component(L), right : Component(R))
-        Alt(L,R, L | R).new(left, right, ->(r : L | R){ r })
+        Alt(L, R, L | R).new(left, right, ->(r : L | R) { r })
       end
 
       def initialize(@left : Component(L), @right : Component(R), @action : (L | R) -> V)
@@ -142,7 +144,7 @@ module Syntaks
           case rr = right.call(state, ctx)
           when Success then succeed(state, rr.end_state, rr.value, ctx)
           when Failure then fail(rr.end_state, ctx)
-          else error(rr.end_state, ctx)
+          else              error(rr.end_state, ctx)
           end
         else error(state, ctx)
         end
@@ -175,7 +177,7 @@ module Syntaks
         case r = rule.call(state, ctx)
         when Success then succeed(state, r.end_state, r.value, ctx)
         when Failure then succeed(state, state, nil, ctx)
-        else error(state, ctx)
+        else              error(state, ctx)
         end
       end
 
@@ -189,10 +191,10 @@ module Syntaks
 
       def to_s(io)
         str = if rule.simple?
-          "~#{rule}"
-        else
-          "~(#{rule})"
-        end
+                "~#{rule}"
+              else
+                "~(#{rule})"
+              end
         io << str
       end
 
@@ -246,7 +248,9 @@ module Syntaks
     end
 
     class NonTerminal(R, V) < Component(V)
-      getter name, referenced_rule, action
+      getter name : String
+      getter referenced_rule : -> Component(R)
+      getter action : R -> V
 
       def self.build(name : String, referenced_rule : -> Component(R))
         NonTerminal(R, R).new(name, referenced_rule, ->(r : R) { r })
@@ -256,7 +260,7 @@ module Syntaks
         NonTerminal(R, V).new(name, referenced_rule, action)
       end
 
-      def initialize(@name : String, @referenced_rule : -> Component(R), @action : R -> V)
+      def initialize(@name, @referenced_rule, @action)
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
@@ -264,7 +268,7 @@ module Syntaks
         r = referenced_rule.call.call(state, ctx)
         case r
         when Success(R) then succeed(state, r.end_state, action.call(r.value), ctx)
-        else fail(state, ctx)
+        else                 fail(state, ctx)
         end
       end
 
@@ -289,7 +293,7 @@ module Syntaks
       getter matcher
 
       def self.build(matcher : String | Regex)
-        new(matcher, ->(t : Token){ t })
+        new(matcher, ->(t : Token) { t })
       end
 
       def self.build(matcher : String | Regex, action : Token -> V)
@@ -301,13 +305,13 @@ module Syntaks
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
         parsed_text = case m = matcher
-          when String
-            m if state.remaining_text.starts_with?(m)
-          when Regex
-            if r = Regex.new("\\A"+m.source).match(state.remaining_text)
-              r[0]
-            end
-        end
+                      when String
+                        m if state.remaining_text.starts_with?(m)
+                      when Regex
+                        if r = Regex.new("\\A" + m.source).match(state.remaining_text)
+                          r[0]
+                        end
+                      end
 
         if parsed_text
           end_state = state.advance(parsed_text.size)
@@ -338,7 +342,10 @@ module Syntaks
 
     macro rule(name, sequence, &action)
       def {{name.id}}
-        @{{name.id}} ||= NonTerminal.build("{{name.id}}", ->{ build_ebnf({{sequence}}) }) {{action}}
+        rr = ->{ build_ebnf({{sequence}}) }
+        tmp = NonTerminal.build("{{name.id}}", rr) {{action}}
+        @{{name.id}} = tmp # without the tmp var the compiler complains about the type of the instance var
+
       end
     end
 
@@ -358,30 +365,175 @@ module Syntaks
       {% end %}
     end
 
+    # macro build_ebnf(arg)
+    #   {%
+    #     t = arg.class_name
+    #     res = if t == "Call"
+    #       argname = "#{arg.name}"
+    #       if arg.receiver && [">>", "&"].includes?(argname)
+    #         "Seq.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
+    #       elsif argname == "|"
+    #         "Alt.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
+    #       elsif argname == "~"
+    #         "Opt.new(build_ebnf(#{arg.receiver}))"
+    #       else
+    #         "NonTerminal.build(\"#{arg.name}\", ->{ #{arg.name} })"
+    #       end
+    #     elsif t == "TupleLiteral"
+    #       "Rep.new(build_ebnf(#{arg[0]}))"
+    #     elsif %w{StringLiteral RegexLiteral}.includes?(t)
+    #       "Terminal.build(#{arg})"
+    #     else
+    #       "NonTerminal.build(\"#{arg}\", ->{ #{arg} })"
+    #     end
+    #   %}
+    #   {{res.id}}
+    # end
+
+    class Dummy
+    end
+
+    class Ref
+    end
+
+    macro build_ebnf_type(arg)
+      {%
+        t = arg.class_name
+        res = if t == "Call"
+                argname = "#{arg.name}"
+                if arg.receiver && [">>", "&"].includes?(argname)
+                  "typeof(Tuple.new(build_nested_ebnf_type(#{arg.receiver}), build_nested_ebnf_type(#{arg.args.first})))"
+                elsif argname == "|"
+                  "build_ebnf_type(#{arg.receiver}) | build_ebnf_type(#{arg.args.first})"
+                elsif argname == "~"
+                  "build_ebnf_type(#{arg.receiver})"
+                else
+                  # "typeof(#{arg.name})"
+                  "Ref"
+                end
+              elsif t == "TupleLiteral"
+                "build_ebnf_type(#{arg[0]})"
+              elsif %w(StringLiteral RegexLiteral).includes?(t)
+                "Dummy"
+              end
+      %}
+      {{res.id}}
+    end
+
+    macro build_nested_ebnf_type(arg)
+      {%
+        t = arg.class_name
+        res = if t == "Call"
+                argname = "#{arg.name}"
+                if arg.receiver && [">>", "&"].includes?(argname)
+                  "Tuple.new(build_nested_ebnf_type(#{arg.receiver}), build_nested_ebnf_type(#{arg.args.first}))"
+                elsif argname == "|"
+                  "build_ebnf_type(#{arg.receiver}) | build_ebnf_type(#{arg.args.first})"
+                elsif argname == "~"
+                  "build_ebnf_type(#{arg.receiver})"
+                else
+                  # "typeof(#{arg.name})"
+                  "Ref.new"
+                end
+              elsif t == "TupleLiteral"
+                "build_ebnf_type(#{arg[0]})"
+              elsif %w(StringLiteral RegexLiteral).includes?(t)
+                "Dummy.new"
+              end
+      %}
+      {{res.id}}
+    end
+
+    macro unpack_tuple(var, arg)
+      {%
+        t = arg.class_name
+        res = if t == "Call"
+                argname = "#{arg.name}"
+                if arg.receiver && [">>", "&"].includes?(argname)
+                  "[unpack_tuple(#{var}[0], #{arg.receiver}), unpack_tuple(#{var}[1], #{arg.args.first})]"
+                else
+                  var.id
+                end
+              elsif t == "TupleLiteral"
+                # "#{var}(#{arg[0]})"
+                var.id
+              elsif %w(StringLiteral RegexLiteral).includes?(t)
+                var.id
+              end
+      %}
+      {{res.id}}
+    end
+
+    macro unpack_nested_tuples(arg)
+      # {% str = "unpack_tuple(argument, #{arg})" %}
+      # {{str.id}}
+      unpack_tuple(argument, {{arg}})
+    end
+
+    macro xyz(arg)
+      {%
+        code = %{"#{arg.id}"}
+        result = expand(code)
+        # result = run("./eval_macro.cr", code)
+
+
+      %}
+      puts {{code}}
+      puts {{result.id}}
+    end
+
     macro build_ebnf(arg)
       {%
         t = arg.class_name
         res = if t == "Call"
-          argname = "#{arg.name}"
-          if arg.receiver && [">>", "&"].includes?(argname)
-            "Seq.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
-          elsif argname == "|"
-            "Alt.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
-          elsif argname == "~"
-            "Opt.new(build_ebnf(#{arg.receiver}))"
-          else
-            "NonTerminal.build(\"#{arg.name}\", ->{ #{arg.name} })"
-          end
-        elsif t == "TupleLiteral"
-          "Rep.new(build_ebnf(#{arg[0]}))"
-        elsif %w{StringLiteral RegexLiteral}.includes?(t)
-          "Terminal.build(#{arg})"
-        else
-          "NonTerminal.build(\"#{arg}\", ->{ #{arg} })"
-        end
+                argname = "#{arg.name}"
+                if arg.receiver && [">>", "&"].includes?(argname)
+                  "Seq.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
+                elsif argname == "|"
+                  "Alt.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
+                elsif argname == "~"
+                  "Opt.new(build_ebnf(#{arg.receiver}))"
+                else
+                  "NonTerminal.build(\"#{arg.name}\", ->{ #{arg.name} })"
+                end
+              elsif t == "TupleLiteral"
+                "Rep.new(build_ebnf(#{arg[0]}))"
+              elsif %w(StringLiteral RegexLiteral).includes?(t)
+                "Terminal.build(#{arg})"
+              else
+                "NonTerminal.build(\"#{arg}\", ->{ #{arg} })"
+              end
       %}
       {{res.id}}
     end
+
+    # flatten a tuple literal
+    # macro flatten_tuple(t)
+    #   {%
+    #     queue = [] of ASTNode
+    #     res = [] of ASTNode
+    #   %}
+    #   {% for e in t %}
+    #     {% queue << e %}
+    #   {% end %}
+    #   {% for e,i in queue %}
+    #     {% if e.class_name == "TupleLiteral" %}
+    #       {% new_q = [] of ASTNode %}
+    #       {% for n, j in e %}
+    #         {% new_q << n %}
+    #       {% end %}
+    #       {% for item, i in new_q%}
+    #         {% queue << item %}
+    #         {% for ignore,j in queue %}
+    #           {% queue[queue.size-j] = queue[queue.size-(j+1)]  %}
+    #         {% end %}
+    #       {% end %}
+    #     {% else %}
+    #       {% res << e %}
+    #     {% end %}
+    #   {% end %}
+    #   { {{*res}} }
+    # end
 
   end
 end

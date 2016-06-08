@@ -102,11 +102,6 @@ module EBNFTests
       assert s.end_state.at == source.size
     end
 
-    def experiments
-      build_ebnf(a > b) # disable backtracking
-      build_ebnf(a > b > c > !newline) # sync token
-    end
-
   end
 
   class ExampleParserTest < Minitest::Test
@@ -121,9 +116,31 @@ module EBNFTests
         name_lit  = /\w+/
         id        = /\w+/
       end
+
+      # {
+      #   Syntaks::EBNF::NonTerminal(Syntaks::Token, Syntaks::Token),
+      #   {
+      #     Syntaks::Token:Class,
+      #     Syntaks::EBNF::NonTerminal(Syntaks::Token, Syntaks::Token):Class
+      #   }
+      # }
+
+      def xxx
+        p build_ebnf_type("a" | "b")
+        p build_ebnf_type("a" >> "b")
+        p build_ebnf_type("a" >> "b" >> "c")
+        p build_ebnf_type("a" | ("b" >> "c"))
+        p build_ebnf_type("method" >> params)
+        argument = {"1", "2"}
+        p unpack_nested_tuples("a" >> "b")
+        argument = {Tuple.new("1", "2"), "3"}
+        p unpack_nested_tuples("a" >> "b" >> "c")
+        p xyz(test)
+      end
     end
 
     def test_acceptance
+      Parser.new.xxx
       assert Parser.new.call("method test(banana,1337,9001)").is_a?(Success)
       assert Parser.new.call("method a(1)").is_a?(Success)
 

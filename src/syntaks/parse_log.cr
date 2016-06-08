@@ -1,17 +1,16 @@
 module Syntaks
   class ParseLog
-
     abstract class Entry
       getter rule, from
 
-      def initialize(@rule, @from : Int)
+      def initialize(@rule, @from : Int32)
       end
     end
 
     class Success < Entry
       getter to
 
-      def initialize(@rule, @from : Int, @to : Int)
+      def initialize(@rule, @from : Int32, @to : Int32)
       end
     end
 
@@ -19,7 +18,7 @@ module Syntaks
     end
 
     class Started < Entry
-      def initialize(@rule, @from : Int)
+      def initialize(@rule, @from : Int32)
       end
     end
 
@@ -38,25 +37,25 @@ module Syntaks
         h = Highlighter.new(source[0..-1])
 
         case entry
-          when Started
-            r = entry.rule as(EBNF::Component)
-            h.highlight(entry.from, :white, :yellow)
-            [
-              ["STARTED".colorize(:yellow), ": ", r.to_s.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
-              h.to_s
-            ].join("\n")
-          when Success
-            h.highlight(entry.from, entry.to, :white, :green)
-            [
-              ["SUCCEEDED".colorize(:green), ": ", entry.rule.to_s.colorize(:blue), " at (#{entry.from}-#{entry.to}):".colorize(:dark_gray)].join,
-              h.to_s
-            ].join("\n")
-          when Failure
-            h.highlight(entry.from, :white, :red)
-            [
-              ["FAILED".colorize(:red), ": ", entry.rule.to_s.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
-              h.to_s
-            ].join("\n")
+        when Started
+          r = entry.rule.as((EBNF::Component))
+          h.highlight(entry.from, :white, :yellow)
+          [
+            ["STARTED".colorize(:yellow), ": ", r.to_s.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
+            h.to_s,
+          ].join("\n")
+        when Success
+          h.highlight(entry.from, entry.to, :white, :green)
+          [
+            ["SUCCEEDED".colorize(:green), ": ", entry.rule.to_s.colorize(:blue), " at (#{entry.from}-#{entry.to}):".colorize(:dark_gray)].join,
+            h.to_s,
+          ].join("\n")
+        when Failure
+          h.highlight(entry.from, :white, :red)
+          [
+            ["FAILED".colorize(:red), ": ", entry.rule.to_s.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
+            h.to_s,
+          ].join("\n")
         end
       end
     end
@@ -71,6 +70,5 @@ module Syntaks
         break if gets == "q\n"
       end
     end
-
   end
 end

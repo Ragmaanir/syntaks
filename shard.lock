@@ -2,11 +2,11 @@ version: 1.0
 shards:
   kontrakt:
     github: ragmaanir/kontrakt
-    version: 0.2.0
+    version: 0.2.1
 
   minitest:
     github: ysbaddaden/minitest.cr
-    version: 0.3.2
+    version: 0.3.4
 
   power_assert:
     github: ragmaanir/power_assert.cr
