@@ -1,9 +1,9 @@
 module Syntaks
   class Source
-    
     getter content
 
-    delegate size, content
+    delegate size, to: content
+
     def initialize(@content : String)
     end
 
@@ -14,6 +14,5 @@ module Syntaks
     def [](range : Range)
       content[range]
     end
-
   end
 end

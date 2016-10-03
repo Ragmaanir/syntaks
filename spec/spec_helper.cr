@@ -1,5 +1,7 @@
-require "minitest/autorun"
-require "power_assert"
+require "microtest"
 require "../src/syntaks"
 
 include Syntaks
+
+include Microtest::DSL
+Microtest.run!

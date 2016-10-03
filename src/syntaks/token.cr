@@ -1,9 +1,8 @@
 module Syntaks
   class Token
-
     getter interval
 
-    delegate content, interval
+    delegate content, to: interval
 
     def initialize(@interval : SourceInterval)
     end
@@ -15,6 +14,5 @@ module Syntaks
     def inspect(io)
       to_s(io)
     end
-    
   end
 end

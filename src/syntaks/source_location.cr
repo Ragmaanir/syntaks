@@ -1,6 +1,5 @@
 module Syntaks
   class SourceLocation
-
     include Kontrakt
 
     getter source : Source
@@ -28,12 +27,13 @@ module Syntaks
     end
 
     def line_end
-      @line_end ||= line_start + (source[line_start..-1].index("\n") || 0)
+      # @line_end ||= line_start + (source[line_start..-1].index("\n") || 0)
+      line_start + (source[line_start..-1].index("\n") || 0)
+      # FIXME memoization. causes type errors ATM
     end
 
     def to_s(io)
       io << "#{line_number}:#{column_number}"
     end
-
   end
 end

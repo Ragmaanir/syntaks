@@ -69,22 +69,22 @@ module Syntaks
       end
     end
 
-    class Seq(L, R, V) < Component(V)
+    class Seq(V) < Component(V)
       getter left, right
 
-      def self.build(left : Component(L), right : Component(R), &action : (L, R) -> V)
-        Seq(L, R, V).new(left, right, ->(l : L, r : R) { action.call(l, r) })
+      def self.build(left : Component(V), right : Component(V), &action : (V, V) -> V)
+        Seq(V).new(left, right, ->(l : Component(V), r : Component(V)) { action.call(l, r) })
       end
 
-      def self.build(left : Component(L), right : Component(R), action : (L, R) -> V)
+      def self.build(left : Component(V), right : Component(V), action : (V, V) -> V)
         new(left, right, action)
       end
 
-      def self.build(left : Component(L), right : Component(R))
-        Seq(L, R, {L, R}).new(left, right, ->(l : L, r : R) { {l, r} })
+      def self.build(left : Component(V), right : Component(V))
+        Seq(V, V, {V, V}).new(left, right, ->(l : V, r : V) { {l, r} })
       end
 
-      def initialize(@left : Component(L), @right : Component(R), @action : (L, R) -> V)
+      def initialize(@left : Component(V), @right : Component(V), @action : (V, V) -> V)
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
@@ -122,18 +122,18 @@ module Syntaks
       end
     end
 
-    class Alt(L, R, V) < Component(V)
+    class Alt(V) < Component(V)
       getter left, right
 
       def self.build(*args)
         new(*args)
       end
 
-      def self.build(left : Component(L), right : Component(R))
-        Alt(L, R, L | R).new(left, right, ->(r : L | R) { r })
+      def self.build(left : Component(V), right : Component(V))
+        Alt(V, V, V).new(left, right, ->(r : V) { r })
       end
 
-      def initialize(@left : Component(L), @right : Component(R), @action : (L | R) -> V)
+      def initialize(@left : Component(V), @right : Component(V), @action : (V) -> V)
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
@@ -247,17 +247,17 @@ module Syntaks
       end
     end
 
-    class NonTerminal(R, V) < Component(V)
+    class NonTerminal(V) < Component(V)
       getter name : String
-      getter referenced_rule : -> Component(R)
-      getter action : R -> V
+      getter referenced_rule : (-> Component(V)) | (-> Terminal(V)) | (-> NonTerminal(V))
+      getter action : V -> V
 
-      def self.build(name : String, referenced_rule : -> Component(R))
-        NonTerminal(R, R).new(name, referenced_rule, ->(r : R) { r })
+      def self.build(name : String, referenced_rule : -> Component(V))
+        NonTerminal(V).new(name, referenced_rule, ->(r : V) { r })
       end
 
-      def self.build(name : String, referenced_rule : -> Component(R), &action : R -> V)
-        NonTerminal(R, V).new(name, referenced_rule, action)
+      def self.build(name : String, referenced_rule : -> Component(R), &action : V -> V)
+        NonTerminal(V).new(name, referenced_rule, action)
       end
 
       def initialize(@name, @referenced_rule, @action)
@@ -343,9 +343,7 @@ module Syntaks
     macro rule(name, sequence, &action)
       def {{name.id}}
         rr = ->{ build_ebnf({{sequence}}) }
-        tmp = NonTerminal.build("{{name.id}}", rr) {{action}}
-        @{{name.id}} = tmp # without the tmp var the compiler complains about the type of the instance var
-
+        @{{name.id}} = NonTerminal.build("{{name.id}}", rr) {{action}}
       end
     end
 
