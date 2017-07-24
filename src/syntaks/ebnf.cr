@@ -1,3 +1,5 @@
+require "./parse_log"
+
 module Syntaks
   module EBNF
     abstract class Context
@@ -53,6 +55,10 @@ module Syntaks
       abstract def simple? : Boolean
       abstract def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
 
+      def as_component
+        self.as(Component(V))
+      end
+
       private def succeed(state : State, end_state : State, value : V, ctx : Context) : Success(V)
         ctx.on_success(self, state, end_state)
         Success(V).new(end_state, value)
@@ -69,19 +75,19 @@ module Syntaks
       end
     end
 
-    class Seq(V) < Component(V)
+    class Seq(L, R, V) < Component(V)
       getter left, right
 
-      def self.build(left : Component(V), right : Component(V), &action : (V, V) -> V)
-        Seq(V).new(left, right, ->(l : Component(V), r : Component(V)) { action.call(l, r) })
+      def self.build(left : Component(L), right : Component(R), &action : (L, R) -> V)
+        Seq(L, R, V).new(left, right, ->(l : Component(V), r : Component(V)) { action.call(l, r) })
       end
 
-      def self.build(left : Component(V), right : Component(V), action : (V, V) -> V)
+      def self.build(left : Component(L), right : Component(R), action : (L, R) -> V)
         new(left, right, action)
       end
 
-      def self.build(left : Component(V), right : Component(V))
-        Seq(V, V, {V, V}).new(left, right, ->(l : V, r : V) { {l, r} })
+      def self.build(left : Component(L), right : Component(R))
+        Seq(L, R, {L, R}).new(left, right, ->(l : L, r : R) { {l, r} })
       end
 
       def initialize(@left : Component(V), @right : Component(V), @action : (V, V) -> V)
@@ -122,18 +128,19 @@ module Syntaks
       end
     end
 
-    class Alt(V) < Component(V)
-      getter left, right
+    class Alt(L, R, V) < Component(V)
+      getter left : L
+      getter right : R
 
       def self.build(*args)
         new(*args)
       end
 
-      def self.build(left : Component(V), right : Component(V))
-        Alt(V, V, V).new(left, right, ->(r : V) { r })
+      def self.build(left : Component(L), right : Component(R))
+        Alt(L, R, L | R).new(left, right, ->(v : L | R) { v })
       end
 
-      def initialize(@left : Component(V), @right : Component(V), @action : (V) -> V)
+      def initialize(@left : Component(L), @right : Component(R), @action : (L | R) -> V)
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
@@ -168,9 +175,9 @@ module Syntaks
     end
 
     class Opt(V) < Component(V?)
-      getter rule
+      getter rule : Component(V)
 
-      def initialize(@rule : Component(V))
+      def initialize(@rule)
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V?) | Failure | Error
@@ -267,7 +274,7 @@ module Syntaks
         ctx.on_non_terminal(self, state)
         r = referenced_rule.call.call(state, ctx)
         case r
-        when Success(R) then succeed(state, r.end_state, action.call(r.value), ctx)
+        when Success(V) then succeed(state, r.end_state, action.call(r.value), ctx)
         else                 fail(state, ctx)
         end
       end
@@ -340,15 +347,45 @@ module Syntaks
       end
     end
 
+    # macro rule(name, sequence, &action)
+    #   #T_{ {name.upcase.id}} = typeof(build_ebnf({{sequence}}))
+    #   #alias T_{{name.id}} = typeof(build_ebnf_type({{sequence}}))
+    #   #@{{name.id}} : NonTerminal(T_{{name.id}}) | Nil
+    #   macro x_{{name.id}}
+    #     typeof(build_ebnf_type({{sequence}}))
+    #   end
+
+    #   @{{name.id}} : x_{{name.id}} | Nil
+
+    #   def {{name.id}}
+    #     rr = ->{ build_ebnf({{sequence}}) }
+    #     @{{name.id}} ||= NonTerminal.build("{{name.id}}", rr) {{action}}
+    #   end
+    # end
+
+    # macro rule(name, sequence, &action)
+    #   def {{name.id}}
+    #     rr = ->{ build_ebnf({{sequence}}) }
+    #     @{{name.id}} ||= NonTerminal.build("{{name.id}}", rr) {{action}}
+    #   end
+    # end
+
+    macro instance_var_type(name, seq)
+      ENBF.build_ebnf_type({{sequence}})
+    end
+
     macro rule(name, sequence, &action)
+      # @{{name.id}} : build_ebnf_type(sequence) | Nil
+      # instance_var_type({{name.id}}, {{sequence}})
+
       def {{name.id}}
         rr = ->{ build_ebnf({{sequence}}) }
-        @{{name.id}} = NonTerminal.build("{{name.id}}", rr) {{action}}
+        @{{name.id}} ||= NonTerminal.build("{{name.id}}", rr) {{action}}
       end
     end
 
     macro rule(definition, &action)
-      rule({{definition.target}}, {{definition.value}}) {{action}}
+      EBNF.rule({{definition.target.stringify}}, {{definition.value}}) {{action}}
     end
 
     macro rules(&block)
@@ -356,9 +393,9 @@ module Syntaks
       {% lines = [block.body] if block.body.class_name == "Assign" %}
       {% for d in lines %}
         {% if d.class_name != "Assign" %}
-          Error: only assignments are allowed, but got a {{d.class_name}}: {{d}}
+          {% raise "Error: only assignments are allowed, but got a #{d.class_name}: #{d}" %}
         {% else %}
-          rule({{d}})
+          EBNF.rule({{d}})
         {% end %}
       {% end %}
     end
@@ -406,8 +443,8 @@ module Syntaks
                 elsif argname == "~"
                   "build_ebnf_type(#{arg.receiver})"
                 else
-                  # "typeof(#{arg.name})"
-                  "Ref"
+                  "typeof(#{arg.name})"
+                  # "Ref"
                 end
               elsif t == "TupleLiteral"
                 "build_ebnf_type(#{arg[0]})"
