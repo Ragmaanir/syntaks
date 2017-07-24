@@ -1,10 +1,10 @@
 module Syntaks
   class Source
-    getter content
+    getter content : String
 
     delegate size, to: content
 
-    def initialize(@content : String)
+    def initialize(@content)
     end
 
     def [](from, length)

@@ -3,30 +3,30 @@ module EBNF
     getter value : V
     getter end_state : State
 
-    def initialize(@end_state : State, @value : V)
+    def initialize(@end_state, @value)
     end
   end
 
   class Failure
     getter end_state : State
 
-    def initialize(@end_state : State)
+    def initialize(@end_state)
     end
   end
 
   class Error
     getter end_state : State
 
-    def initialize(@end_state : State)
+    def initialize(@end_state)
     end
   end
 
   class Token
-    getter interval
+    getter interval : SourceInterval
 
     delegate content, to: interval
 
-    def initialize(@interval : SourceInterval)
+    def initialize(@interval)
     end
 
     def to_s(io)
@@ -39,11 +39,11 @@ module EBNF
   end
 
   class Source
-    getter content
+    getter content : String
 
     delegate size, to: content
 
-    def initialize(@content : String)
+    def initialize(@content)
     end
 
     def [](from, length)
@@ -126,7 +126,7 @@ module EBNF
     getter source : Source
     getter at : Int32
 
-    def initialize(@source : Source, @at : Int)
+    def initialize(@source, @at)
     end
 
     def remaining_text
