@@ -46,7 +46,10 @@ module Syntaks
       end
     end
 
-    abstract class Component(V)
+    abstract class AbstractComponent
+    end
+
+    abstract class Component(V) < AbstractComponent
       def short_name
         # self.class.name.split("::").last
         self.class.name.gsub("Syntaks::", "")
@@ -177,7 +180,7 @@ module Syntaks
     class Opt(V) < Component(V?)
       getter rule : Component(V)
 
-      def initialize(@rule)
+      def initialize(@rule : Component(V))
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V?) | Failure | Error
@@ -254,18 +257,18 @@ module Syntaks
       end
     end
 
-    class NonTerminal(V) < Component(V)
+    class NonTerminal(R, V) < Component(V)
       getter name : String
       # getter referenced_rule : (-> Component(V)) | (-> Terminal(V)) | (-> NonTerminal(V))
-      getter referenced_rule : (-> Component(V))
-      getter action : V -> V
+      getter referenced_rule : (-> Component(R))
+      getter action : R -> V
 
-      def self.build(name : String, referenced_rule : -> Component(V))
-        NonTerminal(V).new(name, referenced_rule, ->(v : V) { v })
+      def self.build(name : String, referenced_rule : -> Component(R))
+        NonTerminal(R, R).new(name, referenced_rule, ->(v : R) { v })
       end
 
-      def self.build(name : String, referenced_rule : -> Component(V), &action : V -> V)
-        NonTerminal(V).new(name, referenced_rule, action)
+      def self.build(name : String, referenced_rule : -> Component(R), &action : R -> V)
+        NonTerminal(R, V).new(name, referenced_rule, action)
       end
 
       def initialize(@name, @referenced_rule, @action)
@@ -275,8 +278,9 @@ module Syntaks
         ctx.on_non_terminal(self, state)
         r = referenced_rule.call.call(state, ctx)
         case r
-        when Success(V) then succeed(state, r.end_state, action.call(r.value), ctx)
-        else                 fail(state, ctx)
+        when Success(R) then succeed(state, r.end_state, action.call(r.value), ctx)
+        else
+          fail(state, ctx)
         end
       end
 
@@ -349,7 +353,9 @@ module Syntaks
     end
 
     macro rule(name, types, sequence, &action)
-      @{{name.id}} : NonTerminal({{types}})?
+      # FIXME cannot build exact type, so have to use more general type
+      #@{{name.id}} : NonTerminal({{types}})?
+      @{{name.id}} : Component({{types}})?
 
       def {{name.id}}
         rr = ->{ (build_ebnf({{sequence}})).as_component }
@@ -379,18 +385,6 @@ module Syntaks
         res = if t == "Call"
                 argname = "#{arg.name}"
                 if arg.receiver && [">>", "&"].includes?(argname)
-                  # "Seq.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
-                  # first = if arg.receiver.class_name == "Call" && [">>", "&"].includes?(arg.receiver.name.stringify)
-                  #           "l[0],l[1]"
-                  #         else
-                  #           "l"
-                  #         end
-                  # second = if arg.args.first.class_name == "Call" && [">>", "&"].includes?(arg.args.first.name.stringify)
-                  #            "r[0],r[1]"
-                  #          else
-                  #            "r"
-                  #          end
-
                   first = if arg.receiver.class_name == "Call" && [">>", "&"].includes?(arg.receiver.name.stringify)
                             "l"
                           else
@@ -402,19 +396,11 @@ module Syntaks
                              "{r}"
                            end
 
-                  puts "---"
-                  puts "#{arg}"
-                  puts "RECEIVER: #{arg.receiver} --- #{arg.receiver.class_name == "Call" && [">>", "&"].includes?(arg.receiver.name.stringify)}"
-                  puts "FIRST: #{arg.args.first} --- #{arg.args.first.class_name == "Call" && [">>", "&"].includes?(arg.args.first.name.stringify)}"
-
                   <<-CRYSTAL
                     Seq.build(
                       build_ebnf(#{arg.receiver}),
                       build_ebnf(#{arg.args.first})
                     ) do |l, r|
-                      #puts({#{first.id},#{second.id}})
-                      #puts "{#{first.id},#{second.id}}"
-                      # {#{first.id},#{second.id}}
                       #{first.id} + #{second.id}
                     end
                   CRYSTAL
@@ -423,7 +409,6 @@ module Syntaks
                 elsif argname == "~"
                   "Opt.new(build_ebnf(#{arg.receiver}))"
                 else
-                  # "NonTerminal.build(\"#{arg.name}\", ->{ #{arg.name} })"
                   arg.stringify
                 end
               elsif t == "TupleLiteral"
@@ -431,7 +416,6 @@ module Syntaks
               elsif %w(StringLiteral RegexLiteral).includes?(t)
                 "Terminal.build(#{arg})"
               else
-                # "NonTerminal.build(\"#{arg}\", ->{ #{arg} })"
                 arg.stringify
               end
       %}

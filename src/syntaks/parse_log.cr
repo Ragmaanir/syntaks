@@ -1,16 +1,17 @@
 module Syntaks
   class ParseLog
     abstract class Entry
-      getter rule, from
+      getter rule : EBNF::AbstractComponent
+      getter from : Int32
 
-      def initialize(@rule, @from : Int32)
+      def initialize(@rule, @from)
       end
     end
 
     class Success < Entry
-      getter to
+      getter to : Int32
 
-      def initialize(@rule, @from : Int32, @to : Int32)
+      def initialize(@rule, @from, @to)
       end
     end
 
@@ -18,11 +19,12 @@ module Syntaks
     end
 
     class Started < Entry
-      def initialize(@rule, @from : Int32)
+      def initialize(@rule, @from)
       end
     end
 
-    getter source, log
+    getter source : Source
+    getter log : Array(Entry)
 
     def initialize(@source : Source)
       @log = [] of Entry
