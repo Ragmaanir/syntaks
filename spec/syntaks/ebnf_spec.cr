@@ -28,6 +28,11 @@ describe Syntaks::EBNF::AbstractComponent do
     assert Rep.new(Seq.build(a, b)) == r
   end
 
+  test "not predicate" do
+    r = build_ebnf(-(a >> b))
+    assert NotPredicate.new(Seq.build(a, b)) == r
+  end
+
   test "mixture" do
     r = build_ebnf((a >> b) | ~(c >> d))
     assert Alt.build(Seq.build(a, b), Opt.new(Seq.build(c, d))) == r

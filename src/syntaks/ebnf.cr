@@ -257,6 +257,39 @@ module Syntaks
       end
     end
 
+    class NotPredicate(V) < Component(Nil)
+      getter rule : Component(V)
+
+      def initialize(@rule : Component(V))
+      end
+
+      def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
+        case res = rule.call(state, ctx)
+        when Success
+          fail(ctx, state)
+        else
+          succeed(ctx, state, state, Empty.new)
+        end
+      end
+
+      def simple?
+        true
+      end
+
+      def ==(other : self)
+        other.rule == rule
+      end
+
+      def to_s(io)
+        io << "-"
+        rule.to_s(io)
+      end
+
+      def inspect(io)
+        io << "#{short_name}(#{rule.inspect})"
+      end
+    end
+
     class NonTerminal(R, V) < Component(V)
       getter name : String
       # getter referenced_rule : (-> Component(V)) | (-> Terminal(V)) | (-> NonTerminal(V))
@@ -408,6 +441,8 @@ module Syntaks
                   "Alt.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
                 elsif argname == "~"
                   "Opt.new(build_ebnf(#{arg.receiver}))"
+                elsif argname == "-"
+                  "NotPredicate.new(build_ebnf(#{arg.receiver}))"
                 else
                   arg.stringify
                 end
