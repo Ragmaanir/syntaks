@@ -79,7 +79,7 @@ module Syntaks
       getter left, right
 
       def self.build(left : Component(L), right : Component(R), &action : (L, R) -> V)
-        Seq(L, R, V).new(left, right, ->(l : Component(V), r : Component(V)) { action.call(l, r) })
+        Seq(L, R, V).new(left, right, ->(l : L, r : R) { action.call(l, r) })
       end
 
       def self.build(left : Component(L), right : Component(R), action : (L, R) -> V)
@@ -90,7 +90,7 @@ module Syntaks
         Seq(L, R, {L, R}).new(left, right, ->(l : L, r : R) { {l, r} })
       end
 
-      def initialize(@left : Component(V), @right : Component(V), @action : (V, V) -> V)
+      def initialize(@left : Component(L), @right : Component(R), @action : (L, R) -> V)
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
@@ -129,8 +129,8 @@ module Syntaks
     end
 
     class Alt(L, R, V) < Component(V)
-      getter left : L
-      getter right : R
+      getter left : Component(L)
+      getter right : Component(R)
 
       def self.build(*args)
         new(*args)
@@ -211,7 +211,7 @@ module Syntaks
     end
 
     class Rep(V) < Component(Array(V))
-      getter rule
+      getter rule : Component(V)
 
       def initialize(@rule : Component(V))
       end
@@ -256,14 +256,15 @@ module Syntaks
 
     class NonTerminal(V) < Component(V)
       getter name : String
-      getter referenced_rule : (-> Component(V)) | (-> Terminal(V)) | (-> NonTerminal(V))
+      # getter referenced_rule : (-> Component(V)) | (-> Terminal(V)) | (-> NonTerminal(V))
+      getter referenced_rule : (-> Component(V))
       getter action : V -> V
 
       def self.build(name : String, referenced_rule : -> Component(V))
-        NonTerminal(V).new(name, referenced_rule, ->(r : V) { r })
+        NonTerminal(V).new(name, referenced_rule, ->(v : V) { v })
       end
 
-      def self.build(name : String, referenced_rule : -> Component(R), &action : V -> V)
+      def self.build(name : String, referenced_rule : -> Component(V), &action : V -> V)
         NonTerminal(V).new(name, referenced_rule, action)
       end
 
@@ -347,45 +348,17 @@ module Syntaks
       end
     end
 
-    # macro rule(name, sequence, &action)
-    #   #T_{ {name.upcase.id}} = typeof(build_ebnf({{sequence}}))
-    #   #alias T_{{name.id}} = typeof(build_ebnf_type({{sequence}}))
-    #   #@{{name.id}} : NonTerminal(T_{{name.id}}) | Nil
-    #   macro x_{{name.id}}
-    #     typeof(build_ebnf_type({{sequence}}))
-    #   end
-
-    #   @{{name.id}} : x_{{name.id}} | Nil
-
-    #   def {{name.id}}
-    #     rr = ->{ build_ebnf({{sequence}}) }
-    #     @{{name.id}} ||= NonTerminal.build("{{name.id}}", rr) {{action}}
-    #   end
-    # end
-
-    # macro rule(name, sequence, &action)
-    #   def {{name.id}}
-    #     rr = ->{ build_ebnf({{sequence}}) }
-    #     @{{name.id}} ||= NonTerminal.build("{{name.id}}", rr) {{action}}
-    #   end
-    # end
-
-    macro instance_var_type(name, seq)
-      ENBF.build_ebnf_type({{sequence}})
-    end
-
-    macro rule(name, sequence, &action)
-      # @{{name.id}} : build_ebnf_type(sequence) | Nil
-      # instance_var_type({{name.id}}, {{sequence}})
+    macro rule(name, types, sequence, &action)
+      @{{name.id}} : NonTerminal({{types}})?
 
       def {{name.id}}
-        rr = ->{ build_ebnf({{sequence}}) }
+        rr = ->{ (build_ebnf({{sequence}})).as_component }
         @{{name.id}} ||= NonTerminal.build("{{name.id}}", rr) {{action}}
       end
     end
 
     macro rule(definition, &action)
-      EBNF.rule({{definition.target.stringify}}, {{definition.value}}) {{action}}
+      rule({{definition.target.stringify}}, {{definition.value}}) {{action}}
     end
 
     macro rules(&block)
@@ -395,126 +368,9 @@ module Syntaks
         {% if d.class_name != "Assign" %}
           {% raise "Error: only assignments are allowed, but got a #{d.class_name}: #{d}" %}
         {% else %}
-          EBNF.rule({{d}})
+          rule({{d}})
         {% end %}
       {% end %}
-    end
-
-    # macro build_ebnf(arg)
-    #   {%
-    #     t = arg.class_name
-    #     res = if t == "Call"
-    #       argname = "#{arg.name}"
-    #       if arg.receiver && [">>", "&"].includes?(argname)
-    #         "Seq.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
-    #       elsif argname == "|"
-    #         "Alt.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
-    #       elsif argname == "~"
-    #         "Opt.new(build_ebnf(#{arg.receiver}))"
-    #       else
-    #         "NonTerminal.build(\"#{arg.name}\", ->{ #{arg.name} })"
-    #       end
-    #     elsif t == "TupleLiteral"
-    #       "Rep.new(build_ebnf(#{arg[0]}))"
-    #     elsif %w{StringLiteral RegexLiteral}.includes?(t)
-    #       "Terminal.build(#{arg})"
-    #     else
-    #       "NonTerminal.build(\"#{arg}\", ->{ #{arg} })"
-    #     end
-    #   %}
-    #   {{res.id}}
-    # end
-
-    class Dummy
-    end
-
-    class Ref
-    end
-
-    macro build_ebnf_type(arg)
-      {%
-        t = arg.class_name
-        res = if t == "Call"
-                argname = "#{arg.name}"
-                if arg.receiver && [">>", "&"].includes?(argname)
-                  "typeof(Tuple.new(build_nested_ebnf_type(#{arg.receiver}), build_nested_ebnf_type(#{arg.args.first})))"
-                elsif argname == "|"
-                  "build_ebnf_type(#{arg.receiver}) | build_ebnf_type(#{arg.args.first})"
-                elsif argname == "~"
-                  "build_ebnf_type(#{arg.receiver})"
-                else
-                  "typeof(#{arg.name})"
-                  # "Ref"
-                end
-              elsif t == "TupleLiteral"
-                "build_ebnf_type(#{arg[0]})"
-              elsif %w(StringLiteral RegexLiteral).includes?(t)
-                "Dummy"
-              end
-      %}
-      {{res.id}}
-    end
-
-    macro build_nested_ebnf_type(arg)
-      {%
-        t = arg.class_name
-        res = if t == "Call"
-                argname = "#{arg.name}"
-                if arg.receiver && [">>", "&"].includes?(argname)
-                  "Tuple.new(build_nested_ebnf_type(#{arg.receiver}), build_nested_ebnf_type(#{arg.args.first}))"
-                elsif argname == "|"
-                  "build_ebnf_type(#{arg.receiver}) | build_ebnf_type(#{arg.args.first})"
-                elsif argname == "~"
-                  "build_ebnf_type(#{arg.receiver})"
-                else
-                  # "typeof(#{arg.name})"
-                  "Ref.new"
-                end
-              elsif t == "TupleLiteral"
-                "build_ebnf_type(#{arg[0]})"
-              elsif %w(StringLiteral RegexLiteral).includes?(t)
-                "Dummy.new"
-              end
-      %}
-      {{res.id}}
-    end
-
-    macro unpack_tuple(var, arg)
-      {%
-        t = arg.class_name
-        res = if t == "Call"
-                argname = "#{arg.name}"
-                if arg.receiver && [">>", "&"].includes?(argname)
-                  "[unpack_tuple(#{var}[0], #{arg.receiver}), unpack_tuple(#{var}[1], #{arg.args.first})]"
-                else
-                  var.id
-                end
-              elsif t == "TupleLiteral"
-                # "#{var}(#{arg[0]})"
-                var.id
-              elsif %w(StringLiteral RegexLiteral).includes?(t)
-                var.id
-              end
-      %}
-      {{res.id}}
-    end
-
-    macro unpack_nested_tuples(arg)
-      # {% str = "unpack_tuple(argument, #{arg})" %}
-      # {{str.id}}
-      unpack_tuple(argument, {{arg}})
-    end
-
-    macro xyz(arg)
-      {%
-        code = %{"#{arg.id}"}
-        result = expand(code)
-        # result = run("./eval_macro.cr", code)
-
-
-      %}
-      puts {{code}}
-      puts {{result.id}}
     end
 
     macro build_ebnf(arg)
@@ -523,52 +379,63 @@ module Syntaks
         res = if t == "Call"
                 argname = "#{arg.name}"
                 if arg.receiver && [">>", "&"].includes?(argname)
-                  "Seq.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
+                  # "Seq.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
+                  # first = if arg.receiver.class_name == "Call" && [">>", "&"].includes?(arg.receiver.name.stringify)
+                  #           "l[0],l[1]"
+                  #         else
+                  #           "l"
+                  #         end
+                  # second = if arg.args.first.class_name == "Call" && [">>", "&"].includes?(arg.args.first.name.stringify)
+                  #            "r[0],r[1]"
+                  #          else
+                  #            "r"
+                  #          end
+
+                  first = if arg.receiver.class_name == "Call" && [">>", "&"].includes?(arg.receiver.name.stringify)
+                            "l"
+                          else
+                            "{l}"
+                          end
+                  second = if arg.args.first.class_name == "Call" && [">>", "&"].includes?(arg.args.first.name.stringify)
+                             "r"
+                           else
+                             "{r}"
+                           end
+
+                  puts "---"
+                  puts "#{arg}"
+                  puts "RECEIVER: #{arg.receiver} --- #{arg.receiver.class_name == "Call" && [">>", "&"].includes?(arg.receiver.name.stringify)}"
+                  puts "FIRST: #{arg.args.first} --- #{arg.args.first.class_name == "Call" && [">>", "&"].includes?(arg.args.first.name.stringify)}"
+
+                  <<-CRYSTAL
+                    Seq.build(
+                      build_ebnf(#{arg.receiver}),
+                      build_ebnf(#{arg.args.first})
+                    ) do |l, r|
+                      #puts({#{first.id},#{second.id}})
+                      #puts "{#{first.id},#{second.id}}"
+                      # {#{first.id},#{second.id}}
+                      #{first.id} + #{second.id}
+                    end
+                  CRYSTAL
                 elsif argname == "|"
                   "Alt.build(build_ebnf(#{arg.receiver}), build_ebnf(#{arg.args.first}))"
                 elsif argname == "~"
                   "Opt.new(build_ebnf(#{arg.receiver}))"
                 else
-                  "NonTerminal.build(\"#{arg.name}\", ->{ #{arg.name} })"
+                  # "NonTerminal.build(\"#{arg.name}\", ->{ #{arg.name} })"
+                  arg.stringify
                 end
               elsif t == "TupleLiteral"
                 "Rep.new(build_ebnf(#{arg[0]}))"
               elsif %w(StringLiteral RegexLiteral).includes?(t)
                 "Terminal.build(#{arg})"
               else
-                "NonTerminal.build(\"#{arg}\", ->{ #{arg} })"
+                # "NonTerminal.build(\"#{arg}\", ->{ #{arg} })"
+                arg.stringify
               end
       %}
       {{res.id}}
     end
-
-    # flatten a tuple literal
-    # macro flatten_tuple(t)
-    #   {%
-    #     queue = [] of ASTNode
-    #     res = [] of ASTNode
-    #   %}
-    #   {% for e in t %}
-    #     {% queue << e %}
-    #   {% end %}
-    #   {% for e,i in queue %}
-    #     {% if e.class_name == "TupleLiteral" %}
-    #       {% new_q = [] of ASTNode %}
-    #       {% for n, j in e %}
-    #         {% new_q << n %}
-    #       {% end %}
-    #       {% for item, i in new_q%}
-    #         {% queue << item %}
-    #         {% for ignore,j in queue %}
-    #           {% queue[queue.size-j] = queue[queue.size-(j+1)]  %}
-    #         {% end %}
-    #       {% end %}
-    #     {% else %}
-    #       {% res << e %}
-    #     {% end %}
-    #   {% end %}
-    #   { {{*res}} }
-    # end
-
   end
 end

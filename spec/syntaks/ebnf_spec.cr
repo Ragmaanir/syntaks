@@ -4,8 +4,8 @@ describe Syntaks::EBNF do
   include EBNF
 
   test "nonterminal_equality" do
-    a = ->{ Terminal.build("a") }
-    b = ->{ Terminal.build("b") }
+    a = ->{ Terminal.build("a").as_component }
+    b = ->{ Terminal.build("b").as_component }
 
     assert NonTerminal.build("a", a) == NonTerminal.build("a", a)
     assert NonTerminal.build("a", a) != NonTerminal.build("b", b)
