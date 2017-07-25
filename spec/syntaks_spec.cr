@@ -73,7 +73,7 @@ describe ActionParser do
   end
 end
 
-describe Xyz do
+describe AlternativeParser do
   abstract class Lit
   end
 
@@ -105,8 +105,19 @@ describe Xyz do
     rule(value, IntLit, /\d+/) { |r| IntLit.new(r.content.to_i32) }
   end
 
-  test! "AST" do
+  test "AST" do
     r = Parser.new.call("12345").as(Success)
     assert r.value == IntLit.new(12345)
+  end
+end
+
+describe NotPredicateParser do
+  class Parser < Syntaks::Parser
+    rule(root, {Nil, Token}, -"x" >> "test")
+  end
+
+  test "acceptance" do
+    assert Parser.new.call("xtest").is_a?(Failure)
+    assert Parser.new.call("test").is_a?(Success)
   end
 end
