@@ -72,3 +72,41 @@ describe ActionParser do
     assert r.value == {"var", 12345}
   end
 end
+
+describe Xyz do
+  abstract class Lit
+  end
+
+  class StringLit < Lit
+    getter value : String
+
+    def initialize(@value)
+    end
+
+    def ==(other : self)
+      value == other.value
+    end
+  end
+
+  class IntLit < Lit
+    getter value : Int32
+
+    def initialize(@value)
+    end
+
+    def ==(other : self)
+      value == other.value
+    end
+  end
+
+  class Parser < Syntaks::Parser
+    rule(root, Lit, value | id)
+    rule(id, StringLit, /\w+/) { |r| StringLit.new(r.content) }
+    rule(value, IntLit, /\d+/) { |r| IntLit.new(r.content.to_i32) }
+  end
+
+  test! "AST" do
+    r = Parser.new.call("12345").as(Success)
+    assert r.value == IntLit.new(12345)
+  end
+end

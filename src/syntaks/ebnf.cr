@@ -140,10 +140,10 @@ module Syntaks
       end
 
       def self.build(left : Component(L), right : Component(R))
-        Alt(L, R, L | R).new(left, right, ->(v : L | R) { v })
+        Alt(L, R, L | R).new(left, right)
       end
 
-      def initialize(@left : Component(L), @right : Component(R), @action : (L | R) -> V)
+      def initialize(@left : Component(L), @right : Component(R), @action : V -> V = ->(v : V) { v })
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
