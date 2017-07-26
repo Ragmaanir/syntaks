@@ -1,3 +1,5 @@
+require "./ebnf/component"
+
 module Syntaks
   class ParseLog
     abstract class Entry

@@ -64,7 +64,7 @@ end
 describe Syntaks::EBNF do
   include EBNF
 
-  test "nonterminal_equality" do
+  test "nonterminal equality" do
     a = ->{ Terminal.build("a").as_component }
     b = ->{ Terminal.build("b").as_component }
 
