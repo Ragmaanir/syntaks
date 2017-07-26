@@ -79,21 +79,23 @@ module Syntaks
     end
 
     class Seq(L, R, V) < Component(V)
-      getter left, right
+      getter left : Component(L)
+      getter right : Component(R)
+      getter backtracking : Bool
 
-      def self.build(left : Component(L), right : Component(R), &action : (L, R) -> V)
-        Seq(L, R, V).new(left, right, ->(l : L, r : R) { action.call(l, r) })
+      def self.build(left : Component(L), right : Component(R), backtracking : Bool = false, &action : (L, R) -> V)
+        Seq(L, R, V).new(left, right, backtracking, ->(l : L, r : R) { action.call(l, r) })
       end
 
-      def self.build(left : Component(L), right : Component(R), action : (L, R) -> V)
-        new(left, right, action)
+      # def self.build(left : Component(L), right : Component(R), backtracking : Bool, action : (L, R) -> V)
+      #   new(left, right, backtracking, action)
+      # end
+
+      def self.build(left : Component(L), right : Component(R), backtracking : Bool = false)
+        Seq(L, R, {L, R}).new(left, right, backtracking, ->(l : L, r : R) { {l, r} })
       end
 
-      def self.build(left : Component(L), right : Component(R))
-        Seq(L, R, {L, R}).new(left, right, ->(l : L, r : R) { {l, r} })
-      end
-
-      def initialize(@left : Component(L), @right : Component(R), @action : (L, R) -> V)
+      def initialize(@left : Component(L), @right : Component(R), @backtracking, @action : (L, R) -> V)
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
@@ -108,7 +110,11 @@ module Syntaks
             error(rr.end_state, ctx)
           end
         when Failure
-          fail(state, ctx)
+          if backtracking
+            fail(state, ctx)
+          else
+            error(state, ctx)
+          end
         else
           error(state, ctx)
         end
@@ -335,7 +341,7 @@ module Syntaks
     end
 
     class Terminal(V) < Component(V)
-      getter matcher
+      getter matcher : String | Regex
 
       def self.build(matcher : String | Regex)
         new(matcher, ->(t : Token) { t })
