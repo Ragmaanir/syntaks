@@ -3,9 +3,12 @@ require "colorize"
 module Syntaks
   class Highlighter
     class Command
-      getter from, to, foreground, background
+      getter from : Int32
+      getter to : Int32
+      getter foreground : Symbol
+      getter background : Symbol
 
-      def initialize(@from : Int32, @to : Int32, @foreground : Symbol, @background : Symbol)
+      def initialize(@from, @to, @foreground, @background)
       end
     end
 

@@ -43,6 +43,7 @@ module Syntaks
 
       def on_error(rule : Component, state : State)
         # FIXME store parse errors
+        parse_log.append(ParseLog::Error.new(rule, state.at))
       end
     end
   end

@@ -27,18 +27,18 @@ module Syntaks
           when Success
             succeed(state, rr.end_state, @action.call(lr.value, rr.value), ctx)
           when Failure
-            fail(rr.end_state, ctx)
+            if backtracking
+              fail(rr.end_state, ctx)
+            else
+              error(rr.end_state, ctx)
+            end
           else
             error(rr.end_state, ctx)
           end
         when Failure
-          if backtracking
-            fail(state, ctx)
-          else
-            error(state, ctx)
-          end
+          fail(state, ctx)
         else
-          error(state, ctx)
+          error(lr.end_state, ctx)
         end
       end
 
@@ -51,7 +51,12 @@ module Syntaks
       end
 
       def to_s(io)
-        io << "#{left} >> #{right}"
+        operator = case backtracking
+                   when true then ">>"
+                   else           "&"
+                   end
+
+        io << "#{left} #{operator} #{right}"
       end
 
       def inspect(io)

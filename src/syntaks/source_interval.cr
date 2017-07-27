@@ -1,13 +1,12 @@
 module Syntaks
   class SourceInterval
-
     include Kontrakt
 
     getter source : Source
-    getter from   : Int32
+    getter from : Int32
     getter length : Int32
 
-    def initialize(@source : Source, @from : Int, @length : Int = 0)
+    def initialize(@source, @from, @length = 0)
       precondition(from >= 0)
       precondition(length >= 0)
       precondition(to < source.size)
@@ -36,6 +35,5 @@ module Syntaks
     def inspect(io)
       to_s(io)
     end
-
   end
 end

@@ -1,17 +1,18 @@
 module Syntaks
   module EBNF
     class Terminal(V) < Component(V)
-      getter matcher : String | Regex
+      alias Matcher = String | Regex
+      getter matcher : Matcher
 
-      def self.build(matcher : String | Regex)
+      def self.build(matcher : Matcher)
         new(matcher, ->(t : Token) { t })
       end
 
-      def self.build(matcher : String | Regex, action : Token -> V)
+      def self.build(matcher : Matcher, action : Token -> V)
         new(matcher, action)
       end
 
-      def initialize(@matcher : String | Regex, @action : Token -> V)
+      def initialize(@matcher, @action : Token -> V)
       end
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error

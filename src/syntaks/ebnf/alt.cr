@@ -25,7 +25,7 @@ module Syntaks
           when Failure then fail(rr.end_state, ctx)
           else              error(rr.end_state, ctx)
           end
-        else error(state, ctx)
+        else error(lr.end_state, ctx)
         end
       end
 

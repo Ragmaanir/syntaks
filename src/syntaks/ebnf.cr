@@ -36,6 +36,7 @@ module Syntaks
         res = if t == "Call"
                 argname = "#{arg.name}"
                 if arg.receiver && [">>", "&"].includes?(argname)
+                  backtrack = argname == ">>"
                   first = if arg.receiver.class_name == "Call" && [">>", "&"].includes?(arg.receiver.name.stringify)
                             "l"
                           else
@@ -50,7 +51,8 @@ module Syntaks
                   <<-CRYSTAL
                     Seq.build(
                       build_ebnf(#{arg.receiver}),
-                      build_ebnf(#{arg.args.first})
+                      build_ebnf(#{arg.args.first}),
+                      #{backtrack}
                     ) do |l, r|
                       #{first.id} + #{second.id}
                     end

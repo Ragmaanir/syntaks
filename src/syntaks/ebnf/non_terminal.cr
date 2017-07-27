@@ -22,8 +22,10 @@ module Syntaks
         r = referenced_rule.call.call(state, ctx)
         case r
         when Success(R) then succeed(state, r.end_state, action.call(r.value), ctx)
-        else
+        when Failure
           fail(state, ctx)
+        else
+          error(r.end_state, ctx)
         end
       end
 

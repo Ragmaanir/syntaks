@@ -1,11 +1,10 @@
 module Syntaks
   class State
-
     include Kontrakt
     getter source : Source
-    getter at     : Int32
+    getter at : Int32
 
-    def initialize(@source : Source, @at : Int)
+    def initialize(@source, @at)
       precondition(at >= 0)
       precondition(at <= source.size)
     end
@@ -28,7 +27,7 @@ module Syntaks
     end
 
     def display
-      #text = source[at, 16].inspect.colorize(:blue).bold.on(:dark_gray)
+      # text = source[at, 16].inspect.colorize(:blue).bold.on(:dark_gray)
       # text = remaining_text[/([^\n]*)/]
       # text = remaining_text[0, 32] if text.size < 10
       # FIXME print current line unless parsing failed at newline or so
@@ -44,6 +43,5 @@ module Syntaks
     def inspect(io)
       to_s(io)
     end
-
   end
 end

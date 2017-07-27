@@ -20,6 +20,9 @@ module Syntaks
     class Failure < Entry
     end
 
+    class Error < Entry
+    end
+
     class Started < Entry
       def initialize(@rule, @from)
       end
@@ -28,7 +31,7 @@ module Syntaks
     getter source : Source
     getter log : Array(Entry)
 
-    def initialize(@source : Source)
+    def initialize(@source)
       @log = [] of Entry
     end
 
@@ -58,6 +61,12 @@ module Syntaks
           h.highlight(entry.from, :white, :red)
           [
             ["FAILED".colorize(:red), ": ", entry.rule.to_s.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
+            h.to_s,
+          ].join("\n")
+        when Error
+          h.highlight(entry.from, :white, :red)
+          [
+            ["ERROR".colorize(:red), ": ", entry.rule.to_s.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
             h.to_s,
           ].join("\n")
         end

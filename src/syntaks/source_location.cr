@@ -5,7 +5,7 @@ module Syntaks
     getter source : Source
     getter at : Int32
 
-    def initialize(@source : Source, @at : Int)
+    def initialize(@source, @at)
       precondition(at >= 0)
       precondition(at < source.size)
     end
