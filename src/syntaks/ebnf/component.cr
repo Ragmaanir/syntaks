@@ -5,8 +5,7 @@ module Syntaks
 
     abstract class Component(V) < AbstractComponent
       def short_name
-        # self.class.name.split("::").last
-        self.class.name.gsub("Syntaks::", "")
+        self.class.name.gsub("Syntaks::EBNF::", "").split("(").first
       end
 
       abstract def simple? : Boolean
@@ -21,14 +20,14 @@ module Syntaks
         Success(V).new(end_state, value)
       end
 
-      private def fail(state : State, ctx : Context) : Failure
+      private def fail(state : State, ctx : Context)
         ctx.on_failure(self, state)
-        Failure.new(state)
+        Failure.new(state, self)
       end
 
-      private def error(state : State, ctx : Context) : Error
+      private def error(state : State, ctx : Context)
         ctx.on_error(self, state)
-        Error.new(state)
+        Error.new(state, self)
       end
     end
   end

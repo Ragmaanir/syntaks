@@ -23,9 +23,9 @@ module Syntaks
           case rr = right.call(state, ctx)
           when Success then succeed(state, rr.end_state, rr.value, ctx)
           when Failure then fail(rr.end_state, ctx)
-          else              error(rr.end_state, ctx)
+          else              rr
           end
-        else error(lr.end_state, ctx)
+        else lr
         end
       end
 

@@ -10,7 +10,7 @@ module Syntaks
         case r = rule.call(state, ctx)
         when Success then succeed(state, r.end_state, r.value, ctx)
         when Failure then succeed(state, state, nil, ctx)
-        else              error(r.end_state, ctx)
+        else              r
         end
       end
 

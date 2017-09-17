@@ -20,7 +20,7 @@ module Syntaks
           when Failure
             break
           else
-            return error(result.end_state, ctx)
+            return result
           end
         end
 

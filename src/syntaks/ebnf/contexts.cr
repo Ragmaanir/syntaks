@@ -3,15 +3,23 @@ require "../parse_log"
 module Syntaks
   module EBNF
     abstract class Context
-      abstract def on_non_terminal(rule : Component, state : State)
+      # getter non_terminal_stack : Array(AbstractComponent) = [] of AbstractComponent
+      getter current_non_terminal : AbstractComponent?
+
+      # abstract def on_non_terminal(rule : Component, state : State)
+      def on_non_terminal(rule : NonTerminal, state : State)
+        # non_terminal_stack << rule
+        @current_non_terminal = rule
+      end
+
       abstract def on_success(rule : Component, state : State, end_state : State)
       abstract def on_failure(rule : Component, state : State)
       abstract def on_error(rule : Component, state : State)
     end
 
     class EmptyContext < Context
-      def on_non_terminal(rule : Component, state : State)
-      end
+      # def on_non_terminal(rule : Component, state : State)
+      # end
 
       def on_success(rule : Component, state : State, end_state : State)
       end
@@ -31,6 +39,7 @@ module Syntaks
 
       def on_non_terminal(rule : Component, state : State)
         parse_log.append(ParseLog::Started.new(rule, state.at))
+        super(rule, state)
       end
 
       def on_success(rule : Component, state : State, end_state : State)

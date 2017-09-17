@@ -33,12 +33,12 @@ module Syntaks
               error(rr.end_state, ctx)
             end
           else
-            error(rr.end_state, ctx)
+            rr
           end
         when Failure
           fail(state, ctx)
         else
-          error(lr.end_state, ctx)
+          lr
         end
       end
 

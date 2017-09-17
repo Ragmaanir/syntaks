@@ -9,15 +9,17 @@ module Syntaks
 
   class Failure
     getter end_state : State
+    getter rule : EBNF::AbstractComponent
 
-    def initialize(@end_state)
+    def initialize(@end_state, @rule)
     end
   end
 
   class Error
     getter end_state : State
+    getter rule : EBNF::AbstractComponent
 
-    def initialize(@end_state)
+    def initialize(@end_state, @rule)
     end
   end
 end
