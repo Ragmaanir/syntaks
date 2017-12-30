@@ -48,7 +48,12 @@ module Syntaks
                 if r && [">>", "&"].includes?(argname)
                   backtrack = argname == ">>"
 
-                  first = if r.class_name == "Expressions" && [">>", "&"].includes?(r.expressions.first.name.stringify)
+                  # Get rid of expressions wrapper
+                  if r.class_name == "Expressions"
+                    r = r.expressions.first
+                  end
+
+                  first = if r.class_name == "Call" && [">>", "&"].includes?(r.name.stringify)
                             "l"
                           else
                             "{l}"
