@@ -32,17 +32,36 @@ module Syntaks
 
     macro build_ebnf(arg)
       {%
+        nil # FIXME undefined macro variable 'res'
+
+        # Get rid of expressions wrapper
+        if arg.class_name == "Expressions"
+          arg = arg.expressions.first
+        end
+
         t = arg.class_name
+
         res = if t == "Call"
                 argname = "#{arg.name}"
-                if arg.receiver && [">>", "&"].includes?(argname)
+                r = arg.receiver
+
+                if r && [">>", "&"].includes?(argname)
                   backtrack = argname == ">>"
-                  first = if arg.receiver.class_name == "Call" && [">>", "&"].includes?(arg.receiver.name.stringify)
+
+                  first = if r.class_name == "Expressions" && [">>", "&"].includes?(r.expressions.first.name.stringify)
                             "l"
                           else
                             "{l}"
                           end
-                  second = if arg.args.first.class_name == "Call" && [">>", "&"].includes?(arg.args.first.name.stringify)
+
+                  first_arg = arg.args.first
+
+                  # Get rid of expressions wrapper
+                  if first_arg.class_name == "Expressions"
+                    first_arg = first_arg.expressions.first
+                  end
+
+                  second = if first_arg.class_name == "Call" && [">>", "&"].includes?(first_arg.name.stringify)
                              "r"
                            else
                              "{r}"
@@ -71,9 +90,11 @@ module Syntaks
               elsif %w(StringLiteral RegexLiteral).includes?(t)
                 "Terminal.build(#{arg})"
               else
-                arg.stringify
+                raise "Unhandled case: #{args}"
+                # arg.stringify
               end
       %}
+
       {{res.id}}
     end
   end
