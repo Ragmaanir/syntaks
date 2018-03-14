@@ -121,3 +121,20 @@ describe NotPredicateParser do
     assert Parser.new.call("test").is_a?(Success)
   end
 end
+
+describe RegexParser do
+  class Parser < Syntaks::Parser
+    rule(:root, Token, identifier | literal)
+    rule(:identifier, Token, /[a-z]+/)
+    rule(:literal, Token, /0|([1-9][0-9]*)/)
+  end
+
+  test "acceptance" do
+    assert Parser.new.call("").is_a?(Failure)
+    assert Parser.new.call("\"").is_a?(Failure)
+    assert Parser.new.call("%1").is_a?(Failure)
+    assert Parser.new.call("0").is_a?(Success)
+    assert Parser.new.call("1").is_a?(Success)
+    assert Parser.new.call("100").is_a?(Success)
+  end
+end

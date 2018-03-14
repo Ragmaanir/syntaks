@@ -1,0 +1,11 @@
+
+- Profiling context
+    - self-time
+    - children-time
+    - self+children time
+    - number of fails/success
+    - count invocations of each rule
+- Use String/IO/StringScanner
+    - If IO: figure out how to use regex in that context
+- Rename call to call_impl so profiling/logging code can be injected more easily
+- BUG: parse log printing is too slow for large files

@@ -20,7 +20,7 @@ module Syntaks
                       when String
                         m if state.remaining_text.starts_with?(m)
                       when Regex
-                        if r = Regex.new("\\A" + m.source).match(state.remaining_text)
+                        if r = Regex.new("\\A(#{m.source})").match(state.remaining_text)
                           r[0]
                         end
                       end

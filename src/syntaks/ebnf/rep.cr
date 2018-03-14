@@ -18,13 +18,14 @@ module Syntaks
             next_state = result.end_state
             result = rule.call(next_state, ctx)
           when Failure
-            break
+            # break
+            return succeed(state, next_state, values, ctx)
           else
             return result
           end
         end
 
-        succeed(state, result.end_state, values, ctx)
+        # succeed(state, result.end_state, values, ctx)
       end
 
       def simple?

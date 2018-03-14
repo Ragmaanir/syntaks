@@ -26,6 +26,9 @@ describe Syntaks::EBNF::AbstractComponent do
   test "repetition" do
     r = build_ebnf({a >> b})
     assert Rep.new(Seq.build(a, b)) == r
+
+    r = build_ebnf({a >> b} >> c)
+    assert Seq.build(Rep.new(Seq.build(a, b)), c) == r
   end
 
   test "not predicate" do
