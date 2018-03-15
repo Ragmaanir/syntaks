@@ -4,27 +4,39 @@ module Syntaks
   class ParseLog
     abstract class Entry
       getter rule : EBNF::AbstractComponent
+
+      def initialize(@rule)
+      end
+    end
+
+    class Start < Entry
       getter from : Int32
 
       def initialize(@rule, @from)
       end
     end
 
-    class Success < Entry
-      getter to : Int32
+    class End < Entry
+      enum Kind
+        SUCCESS
+        FAILURE
+        ERROR
 
-      def initialize(@rule, @from, @to)
+        def self.from_result(res : Success | Failure | Error)
+          case res
+          when Success then Kind::SUCCESS
+          when Failure then Kind::FAILURE
+          else              Kind::ERROR
+          end
+        end
       end
-    end
 
-    class Failure < Entry
-    end
+      # FIXME rule
+      getter from : Int32
+      getter to : Int32
+      getter kind : Kind
 
-    class Error < Entry
-    end
-
-    class Started < Entry
-      def initialize(@rule, @from)
+      def initialize(@rule, @kind, @from, @to)
       end
     end
 
@@ -35,53 +47,127 @@ module Syntaks
       @log = [] of Entry
     end
 
-    def append(entry : Entry)
-      @log << entry
+    def log_start(rule : EBNF::Component, start : Int32)
+      @log << Start.new(rule, start)
     end
 
-    def printable_array
-      @log.map do |entry|
-        h = Highlighter.new(source[0..-1])
+    def log_end(rule : EBNF::Component, state : State, result : Success | Failure | Error)
+      @log << End.new(rule, End::Kind.from_result(result), state.at, result.end_state.at)
+    end
 
+    DOT   = "•"
+    ARROW = "↳"
+    TICK  = "✓"
+    CROSS = "✕"
+    ERROR = "⚡"
+
+    private def excerpt(at : Int32)
+      pre = if at > 0
+              source[[at - 4, 0].max..[at - 1, 0].max]
+            end
+
+      current = source[at, 1]
+      post = source[[at + 1, source.size].min, 16]
+
+      {pre.try(&.gsub("\n", "\\n")), current.gsub("\n", "\\n"), post.gsub("\n", "\\n")}
+    end
+
+    private def excerpt(from : Int32, at : Int32)
+      pre = if at > 0
+              source[[[at - 8, [from, at - 16].max].min, 0].max..[at - 1, 0].max]
+            end
+
+      current = source[at, 1]
+      post = source[[at + 1, source.size].min, 16]
+
+      {pre.try(&.gsub("\n", "\\n")), current.gsub("\n", "\\n"), post.gsub("\n", "\\n")}
+    end
+
+    private def print_start(entry : Start)
+      pre, current, post = excerpt(entry.from)
+
+      excerpt = [
+        pre.colorize(:black).on(:green),
+        current.colorize(:black).on(:white),
+        post.colorize(:dark_gray),
+      ].join
+
+      [
+        ARROW,
+        " ",
+        entry.rule.to_s.colorize(:blue),
+        "\t",
+        " at (#{entry.from}): ".colorize(:dark_gray),
+        excerpt,
+      ].join
+    end
+
+    MARKER_MAP = {
+      End::Kind::SUCCESS => TICK,
+      End::Kind::FAILURE => CROSS,
+      End::Kind::ERROR   => ERROR,
+    }
+
+    COLOR_MAP = {
+      End::Kind::SUCCESS => :green,
+      End::Kind::FAILURE => :yellow,
+      End::Kind::ERROR   => :red,
+    }
+
+    private def print_end(entry : End)
+      start = if entry.to > 0
+                [entry.to - 8, 0].max
+              end
+
+      pre, current, post = excerpt(entry.from, entry.to)
+
+      color = COLOR_MAP.fetch(entry.kind)
+
+      excerpt = [
+        pre.colorize(:black).on(color),
+        current.colorize(:black).on(:white),
+        post.colorize(:dark_gray),
+      ].join
+
+      marker = MARKER_MAP.fetch(entry.kind).colorize(color)
+
+      [
+        marker,
+        " ",
+        entry.rule.to_s.colorize(:blue),
+        "\t",
+        " at (#{entry.from}-#{entry.to}): ".colorize(:dark_gray),
+        excerpt,
+      ].join
+    end
+
+    def to_s(io : IO)
+      indent_depth = 0
+      indent = ->{ "  " * indent_depth }
+
+      @log.each do |entry|
         case entry
-        when Started
-          r = entry.rule.as((EBNF::Component))
-          h.highlight(entry.from, :white, :yellow)
-          [
-            ["STARTED".colorize(:yellow), ": ", r.to_s.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
-            h.to_s,
-          ].join("\n")
-        when Success
-          h.highlight(entry.from, entry.to, :white, :green)
-          [
-            ["SUCCEEDED".colorize(:green), ": ", entry.rule.to_s.colorize(:blue), " at (#{entry.from}-#{entry.to}):".colorize(:dark_gray)].join,
-            h.to_s,
-          ].join("\n")
-        when Failure
-          h.highlight(entry.from, :white, :red)
-          [
-            ["FAILED".colorize(:red), ": ", entry.rule.to_s.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
-            h.to_s,
-          ].join("\n")
-        when Error
-          h.highlight(entry.from, :white, :red)
-          [
-            ["ERROR".colorize(:red), ": ", entry.rule.to_s.colorize(:blue), " at (#{entry.from}):".colorize(:dark_gray)].join,
-            h.to_s,
-          ].join("\n")
+        when Start
+          io << indent.call
+          io << print_start(entry)
+
+          indent_depth += 1
+        when End
+          indent_depth -= 1
+
+          io << indent.call
+          io << print_end(entry)
         end
+
+        io << "\n"
       end
     end
 
-    def to_s(io)
-      io << printable_array.flatten.join("\n")
-    end
-
-    def replay
-      printable_array.each do |entry|
-        puts entry
-        break if gets == "q\n"
-      end
-    end
+    # def replay
+    #   printable_array.each do |entry|
+    #     puts entry
+    #     break if gets == "q\n"
+    #   end
+    # end
   end
 end

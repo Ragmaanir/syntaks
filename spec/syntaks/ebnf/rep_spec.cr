@@ -27,13 +27,37 @@ describe NestedRep do
     assert parser.call("ababc").is_a?(Success)
     assert parser.call("c").is_a?(Success)
     assert parser.call("abc").is_a?(Success)
+
     assert parser.call("abac").is_a?(Failure)
     assert parser.call("aaab").is_a?(Failure)
     assert parser.call("aaabc").is_a?(Failure)
+    assert parser.call("ababa").is_a?(Failure)
+    assert parser.call("abab").is_a?(Failure)
     assert parser.call("").is_a?(Failure)
   end
+end
 
-  test "backtracking"
+describe NestedRepWithoutBacktracking do
+  include Syntaks::EBNF
+
+  class Parser < Syntaks::Parser
+    rule(:root, {Array(Tuple(Token, Token)), Token}, {"a" & "b"} >> "c")
+  end
+
+  test "nested sequence" do
+    parser = Parser.new
+    assert parser.call("ababc").is_a?(Success)
+    assert parser.call("c").is_a?(Success)
+    assert parser.call("abc").is_a?(Success)
+
+    assert parser.call("abac").is_a?(Error)
+    assert parser.call("aaab").is_a?(Error)
+    assert parser.call("aaabc").is_a?(Error)
+    assert parser.call("ababa").is_a?(Error)
+
+    assert parser.call("abab").is_a?(Failure)
+    assert parser.call("").is_a?(Failure)
+  end
 end
 
 describe RepResults do

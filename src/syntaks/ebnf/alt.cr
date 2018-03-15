@@ -15,15 +15,17 @@ module Syntaks
       def initialize(@left : Component(L), @right : Component(R), @action : V -> V = ->(v : V) { v })
       end
 
-      def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
+      def call_impl(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
         case lr = left.call(state, ctx)
         when Success
-          succeed(state, lr.end_state, lr.value, ctx)
+          Success(V).new(state, lr.end_state, lr.value)
         when Failure
           case rr = right.call(state, ctx)
-          when Success then succeed(state, rr.end_state, rr.value, ctx)
-          when Failure then fail(rr.end_state, ctx)
-          else              rr
+          when Success
+            Success(V).new(state, rr.end_state, rr.value)
+          when Failure
+            Failure.new(rr.end_state, self)
+          else rr
           end
         else lr
         end

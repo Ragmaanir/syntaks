@@ -8,9 +8,7 @@ module Syntaks
       src = Source.new(input)
       ctx = LoggingContext.new(ParseLog.new(src))
       r = call(src, ctx)
-      case r
-      when Failure, Error then puts ctx.parse_log
-      end
+      puts ctx.parse_log
       r
     end
 

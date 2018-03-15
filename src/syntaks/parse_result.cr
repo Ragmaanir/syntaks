@@ -1,13 +1,16 @@
 module Syntaks
   class Success(V)
     getter value : V
+    getter state : State
     getter end_state : State
 
-    def initialize(@end_state, @value)
+    def initialize(@state, @end_state, @value)
     end
   end
 
   class Failure
+    # FIXME state?
+    # getter state : State
     getter end_state : State
     getter rule : EBNF::AbstractComponent
 
@@ -16,6 +19,8 @@ module Syntaks
   end
 
   class Error
+    # FIXME state?
+    # getter state : State
     getter end_state : State
     getter rule : EBNF::AbstractComponent
 

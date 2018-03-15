@@ -20,23 +20,23 @@ module Syntaks
       def initialize(@left : Component(L), @right : Component(R), @backtracking, @action : (L, R) -> V)
       end
 
-      def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
+      def call_impl(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
         case lr = left.call(state, ctx)
         when Success
           case rr = right.call(lr.end_state, ctx)
           when Success
-            succeed(state, rr.end_state, @action.call(lr.value, rr.value), ctx)
+            Success(V).new(state, rr.end_state, @action.call(lr.value, rr.value))
           when Failure
             if backtracking
-              fail(rr.end_state, ctx)
+              Failure.new(rr.end_state, self)
             else
-              error(rr.end_state, ctx)
+              Error.new(rr.end_state, self)
             end
           else
             rr
           end
         when Failure
-          fail(state, ctx)
+          Failure.new(state, self)
         else
           lr
         end

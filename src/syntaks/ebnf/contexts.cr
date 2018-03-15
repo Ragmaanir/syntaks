@@ -3,31 +3,15 @@ require "../parse_log"
 module Syntaks
   module EBNF
     abstract class Context
-      # getter non_terminal_stack : Array(AbstractComponent) = [] of AbstractComponent
-      getter current_non_terminal : AbstractComponent?
-
-      # abstract def on_non_terminal(rule : Component, state : State)
-      def on_non_terminal(rule : NonTerminal, state : State)
-        # non_terminal_stack << rule
-        @current_non_terminal = rule
-      end
-
-      abstract def on_success(rule : Component, state : State, end_state : State)
-      abstract def on_failure(rule : Component, state : State)
-      abstract def on_error(rule : Component, state : State)
+      abstract def start_component_call(rule : Component, state : State)
+      abstract def end_component_call(rule : Component, state : State, result : Success | Failure | Error)
     end
 
     class EmptyContext < Context
-      # def on_non_terminal(rule : Component, state : State)
-      # end
-
-      def on_success(rule : Component, state : State, end_state : State)
+      def start_component_call(rule : Component, state : State)
       end
 
-      def on_failure(rule : Component, state : State)
-      end
-
-      def on_error(rule : Component, state : State)
+      def end_component_call(rule : Component, state : State, result : Success | Failure | Error)
       end
     end
 
@@ -37,22 +21,35 @@ module Syntaks
       def initialize(@parse_log)
       end
 
-      def on_non_terminal(rule : Component, state : State)
-        parse_log.append(ParseLog::Started.new(rule, state.at))
-        super(rule, state)
+      def start_component_call(rule : Component, state : State)
+        parse_log.log_start(rule, state.at)
       end
 
-      def on_success(rule : Component, state : State, end_state : State)
-        parse_log.append(ParseLog::Success.new(rule, state.at, end_state.at))
+      def end_component_call(rule : Component, state : State, result : Success | Failure | Error)
+        parse_log.log_end(rule, state, result)
+      end
+    end
+
+    class ProfilingContext < Context
+      record RuleInvocation, exp : String, started_at : Time, children_time : Float64 = 0.0
+      record TimingStats, total_time : Float64, children_time : Float64 do
+        def self_time
+          total_time - children_time
+        end
       end
 
-      def on_failure(rule : Component, state : State)
-        parse_log.append(ParseLog::Failure.new(rule, state.at))
+      getter timings : Hash(String, TimingStats) = Hash(String, TimingStats).new
+      getter stack : Array(RuleInvocation) = [] of RuleInvocation
+
+      def start_component_call(rule : Component, state : State)
+        stack << RuleInvocation.new(rule.to_s, Time.now)
       end
 
-      def on_error(rule : Component, state : State)
-        # FIXME store parse errors
-        parse_log.append(ParseLog::Error.new(rule, state.at))
+      def end_component_call(rule : Component, state : State, result : Success | Failure | Error)
+        inv = stack.pop
+
+        timings[rule.to_s] ||= TimingStats.new((Time.now - inv.started_at).to_f, inv.children_time)
+        timings[rule.to_s] += 0
       end
     end
   end

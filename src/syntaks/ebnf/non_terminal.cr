@@ -17,13 +17,14 @@ module Syntaks
       def initialize(@name, @referenced_rule, @action)
       end
 
-      def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
-        ctx.on_non_terminal(self, state)
+      def call_impl(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
         r = referenced_rule.call.call(state, ctx)
+
         case r
-        when Success(R) then succeed(state, r.end_state, action.call(r.value), ctx)
+        when Success(R)
+          Success(V).new(state, r.end_state, action.call(r.value))
         when Failure
-          fail(state, ctx)
+          Failure.new(state, self)
         else
           r
         end

@@ -6,12 +6,12 @@ module Syntaks
       def initialize(@rule : Component(V))
       end
 
-      def call(state : State, ctx : Context = EmptyContext.new) : Success(Nil) | Failure | Error
+      def call_impl(state : State, ctx : Context = EmptyContext.new) : Success(Nil) | Failure | Error
         case res = rule.call(state, ctx)
         when Success
-          fail(state, ctx)
+          Failure.new(state, self)
         else
-          succeed(state, state, nil, ctx)
+          Success(Nil).new(state, res.end_state, nil)
         end
       end
 

@@ -6,7 +6,8 @@ module Syntaks
       def initialize(@rule : Component(V))
       end
 
-      def call(state : State, ctx : Context = EmptyContext.new) : Success(Array(V)) | Failure | Error
+      def call_impl(state : State, ctx : Context = EmptyContext.new) : Success(Array(V)) | Failure | Error
+        last_state = state
         next_state = state
         values = [] of V
         result = rule.call(next_state, ctx)
@@ -15,17 +16,16 @@ module Syntaks
           case result
           when Success
             values << result.value
+            last_state = next_state
             next_state = result.end_state
+
             result = rule.call(next_state, ctx)
           when Failure
-            # break
-            return succeed(state, next_state, values, ctx)
+            return Success(Array(V)).new(state, next_state, values)
           else
             return result
           end
         end
-
-        # succeed(state, result.end_state, values, ctx)
       end
 
       def simple?

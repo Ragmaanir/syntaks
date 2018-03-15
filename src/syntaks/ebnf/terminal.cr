@@ -15,7 +15,7 @@ module Syntaks
       def initialize(@matcher, @action : Token -> V)
       end
 
-      def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
+      def call_impl(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
         parsed_text = case m = matcher
                       when String
                         m if state.remaining_text.starts_with?(m)
@@ -29,9 +29,10 @@ module Syntaks
           end_state = state.advance(parsed_text.size)
           token = Token.new(state.interval(parsed_text.size))
           value = @action.call(token)
-          succeed(state, end_state, value, ctx)
+
+          Success(V).new(state, end_state, value)
         else
-          fail(state, ctx)
+          Failure.new(state, self)
         end
       end
 
