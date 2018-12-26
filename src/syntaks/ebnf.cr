@@ -14,21 +14,25 @@ module Syntaks
       end
     end
 
-    macro rule(definition, &action)
-      rule({{definition.target.stringify}}, {{definition.value}}) {{action}}
+    macro ignored(name, sequence)
+      rule({{name.id}}, Nil, {{sequence}}) { nil }
     end
 
-    macro rules(&block)
-      {% lines = block.body.expressions if block.body.class_name == "Expressions" %}
-      {% lines = [block.body] if block.body.class_name == "Assign" %}
-      {% for d in lines %}
-        {% if d.class_name != "Assign" %}
-          {% raise "Error: only assignments are allowed, but got a #{d.class_name}: #{d}" %}
-        {% else %}
-          rule({{d}})
-        {% end %}
-      {% end %}
-    end
+    # macro rule(definition, &action)
+    #   rule({{definition.target.stringify}}, {{definition.value}}) {{action}}
+    # end
+
+    # macro rules(&block)
+    #   {% lines = block.body.expressions if block.body.class_name == "Expressions" %}
+    #   {% lines = [block.body] if block.body.class_name == "Assign" %}
+    #   {% for d in lines %}
+    #     {% if d.class_name != "Assign" %}
+    #       {% raise "Error: only assignments are allowed, but got a #{d.class_name}: #{d}" %}
+    #     {% else %}
+    #       rule({{d}})
+    #     {% end %}
+    #   {% end %}
+    # end
 
     macro build_ebnf(arg)
       {%

@@ -18,15 +18,13 @@ module Syntaks
       def call_impl(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
         parsed_text = case m = matcher
                       when String
-                        m if state.remaining_text.starts_with?(m)
+                        state.peek?(m)
                       when Regex
-                        if r = Regex.new("\\A(#{m.source})").match(state.remaining_text)
-                          r[0]
-                        end
+                        state.peek?(Regex.new("#{m.source}"))
                       end
 
         if parsed_text
-          end_state = state.advance(parsed_text.size)
+          end_state = state.advance(parsed_text.bytesize)
           token = Token.new(state.interval(parsed_text.size))
           value = @action.call(token)
 

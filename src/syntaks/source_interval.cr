@@ -6,6 +6,7 @@ module Syntaks
     getter from : Int32
     getter length : Int32
 
+    # interval does not include last character
     def initialize(@source, @from, @length = 0)
       precondition(from >= 0)
       precondition(length >= 0)
@@ -25,7 +26,7 @@ module Syntaks
     end
 
     def content
-      source[from..to]
+      source.slow_lookup(from..to)
     end
 
     def to_s(io)

@@ -2,21 +2,22 @@ require "./ebnf/component"
 
 module Syntaks
   class ParseLog
-    abstract class Entry
+    abstract struct Entry
       getter rule : EBNF::AbstractComponent
+      getter timestamp : Time = Time.now
 
       def initialize(@rule)
       end
     end
 
-    class Start < Entry
+    struct Start < Entry
       getter from : Int32
 
       def initialize(@rule, @from)
       end
     end
 
-    class End < Entry
+    struct End < Entry
       enum Kind
         SUCCESS
         FAILURE
@@ -42,6 +43,7 @@ module Syntaks
 
     getter source : Source
     getter log : Array(Entry)
+    getter started_at : Time = Time.now
 
     def initialize(@source)
       @log = [] of Entry
@@ -63,22 +65,22 @@ module Syntaks
 
     private def excerpt(at : Int32)
       pre = if at > 0
-              source[[at - 4, 0].max..[at - 1, 0].max]
+              source.slow_lookup([at - 8, 0].max..[at - 1, 0].max)
             end
 
-      current = source[at, 1]
-      post = source[[at + 1, source.size].min, 16]
+      current = source.slow_lookup(at, 1)
+      post = source.slow_lookup([at + 1, source.size].min, 16)
 
       {pre.try(&.gsub("\n", "\\n")), current.gsub("\n", "\\n"), post.gsub("\n", "\\n")}
     end
 
     private def excerpt(from : Int32, at : Int32)
       pre = if at > 0
-              source[[[at - 8, [from, at - 16].max].min, 0].max..[at - 1, 0].max]
+              source.slow_lookup([[at - 8, [from, at - 16].max].min, 0].max..[at - 1, 0].max)
             end
 
-      current = source[at, 1]
-      post = source[[at + 1, source.size].min, 16]
+      current = source.slow_lookup(at, 1)
+      post = source.slow_lookup([at + 1, source.size].min, 16)
 
       {pre.try(&.gsub("\n", "\\n")), current.gsub("\n", "\\n"), post.gsub("\n", "\\n")}
     end
@@ -87,13 +89,14 @@ module Syntaks
       pre, current, post = excerpt(entry.from)
 
       excerpt = [
-        pre.colorize(:black).on(:green),
+        pre.colorize(:white).on(:green),
         current.colorize(:black).on(:white),
-        post.colorize(:dark_gray),
+        post.colorize(:white).on(:dark_gray),
       ].join
 
       [
         ARROW,
+        "%3.1f" % (1000 * (entry.timestamp - started_at).to_f),
         " ",
         entry.rule.to_s.colorize(:blue),
         "\t",
@@ -115,24 +118,21 @@ module Syntaks
     }
 
     private def print_end(entry : End)
-      start = if entry.to > 0
-                [entry.to - 8, 0].max
-              end
-
       pre, current, post = excerpt(entry.from, entry.to)
 
-      color = COLOR_MAP.fetch(entry.kind)
+      color = COLOR_MAP[entry.kind]
 
       excerpt = [
-        pre.colorize(:black).on(color),
+        pre.colorize(:white).on(color),
         current.colorize(:black).on(:white),
-        post.colorize(:dark_gray),
+        post.colorize(:white).on(:dark_gray),
       ].join
 
-      marker = MARKER_MAP.fetch(entry.kind).colorize(color)
+      marker = MARKER_MAP[entry.kind].colorize(color)
 
       [
         marker,
+        "%3.1f" % (1000 * (entry.timestamp - started_at).to_f),
         " ",
         entry.rule.to_s.colorize(:blue),
         "\t",

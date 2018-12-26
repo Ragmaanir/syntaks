@@ -11,25 +11,23 @@ module Syntaks
     end
 
     def line_number
-      source[0..at].count("\n")
+      source.line_number_at_byte(at) + 1
     end
 
     def column_number
-      at - (source[0..at].rindex("\n") || 0)
-    end
-
-    def line
-      source[line_start..line_end]
+      source.column_number_at_byte(at) + 1
     end
 
     def line_start
-      @line_start ||= source[0..at].rindex("\n") || 0
+      source.line_start_at_byte(at)
     end
 
     def line_end
-      # @line_end ||= line_start + (source[line_start..-1].index("\n") || 0)
-      line_start + (source[line_start..-1].index("\n") || 0)
-      # FIXME memoization. causes type errors ATM
+      source.line_end_at_byte(at)
+    end
+
+    def line
+      source.byte_slice(line_start..(line_end + 1))
     end
 
     def to_s(io)

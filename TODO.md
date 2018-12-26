@@ -3,18 +3,22 @@
 + BUG: parse log printing is too slow for large files -> using IO now
 + Redesign parse-log: nesting, excerpts, EBNF rule
 + Reimplement contexts and callbacks
++ `ignored`-macro that generates Nil rules
++ Create benchmark, then profile and speed up
++ Use byte-based indices to avoid slow multi-byte-based string lookups
++ Profiling context
+    + self-time
+    + children-time
+    + self+children time
+    + number of fails/success
+    + count invocations of each rule
 
-- Profiling context
-    - self-time
-    - children-time
-    - self+children time
-    - number of fails/success
-    - count invocations of each rule
-    - max-depth
-- Create benchmark, then profile and speed up
+- lint/ameba
+- Specs for parse errors/failures and incomplete parses
+- Replace `Source#slow_lookup` invocations
+- Change line/column to be zero-based in general and only add 1 for display purposes?
+- ProfilingContext: show max-depth
 - Packrat parsing
-- Use String/IO/StringScanner
-    - If IO: figure out how to use regex in that context
 - Print rule as EBNF string / syntaks-expression
 - better error reporting/messages: "expected id /[a-z]+/, got '123'"
 - Tests for all rule types

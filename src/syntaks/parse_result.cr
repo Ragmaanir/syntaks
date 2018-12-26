@@ -26,5 +26,24 @@ module Syntaks
 
     def initialize(@end_state, @rule)
     end
+
+    def message
+      at = end_state.at
+      loc = end_state.location
+
+      col = loc.column_number
+
+      line = "#{loc.line_number}>#{loc.line}"
+      arrow = "-" * (col - 1 + (Math.log10(col).to_i)) + "^"
+
+      <<-MSG
+      Syntax error at #{loc}:
+
+      #{line}
+      #{arrow}
+      Rule: #{rule}
+
+      MSG
+    end
   end
 end

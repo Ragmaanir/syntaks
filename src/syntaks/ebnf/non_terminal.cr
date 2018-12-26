@@ -6,6 +6,8 @@ module Syntaks
       getter referenced_rule : (-> Component(R))
       getter action : R -> V
 
+      @rule : Component(R)?
+
       def self.build(name : String, referenced_rule : -> Component(R))
         NonTerminal(R, R).new(name, referenced_rule, ->(v : R) { v })
       end
@@ -18,7 +20,7 @@ module Syntaks
       end
 
       def call_impl(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
-        r = referenced_rule.call.call(state, ctx)
+        r = rule.call(state, ctx)
 
         case r
         when Success(R)
@@ -28,6 +30,10 @@ module Syntaks
         else
           r
         end
+      end
+
+      private def rule
+        @rule ||= referenced_rule.call
       end
 
       def simple?

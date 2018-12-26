@@ -6,5 +6,5 @@ shards:
 
   microtest:
     github: ragmaanir/microtest
-    commit: 1ea3e36e1f5bf2e1774bdf1f2f1a4f6e15bfeebc
+    commit: 46199a9b32be12021b9018a7e7e068572b842c69
 

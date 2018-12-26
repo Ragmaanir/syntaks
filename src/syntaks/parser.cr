@@ -12,6 +12,13 @@ module Syntaks
       r
     end
 
+    def call!(src : Source)
+      ctx = LoggingContext.new(ParseLog.new(src))
+      r = call(src, ctx)
+      puts ctx.parse_log
+      r
+    end
+
     def call(input : String, ctx : Context = EmptyContext.new)
       call(Source.new(input), ctx)
     end
