@@ -14,6 +14,8 @@
     + count invocations of each rule
 
 - lint/ameba
+- Better README (TODO, CHANGELOG, embedded examples like in microtest)
+- Add bin/release
 - Specs for parse errors/failures and incomplete parses
 - Replace `Source#slow_lookup` invocations
 - Change line/column to be zero-based in general and only add 1 for display purposes?

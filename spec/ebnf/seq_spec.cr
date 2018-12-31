@@ -1,4 +1,4 @@
-require "../../spec_helper"
+require "../spec_helper"
 
 describe Syntaks::EBNF::Seq do
   include Syntaks::EBNF

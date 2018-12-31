@@ -9,8 +9,6 @@ module Syntaks
   end
 
   class Failure
-    # FIXME state?
-    # getter state : State
     getter end_state : State
     getter rule : EBNF::AbstractComponent
 
@@ -19,8 +17,6 @@ module Syntaks
   end
 
   class Error
-    # FIXME state?
-    # getter state : State
     getter end_state : State
     getter rule : EBNF::AbstractComponent
 
@@ -33,8 +29,10 @@ module Syntaks
 
       col = loc.column_number
 
-      line = "#{loc.line_number}>#{loc.line}"
-      arrow = "-" * (col - 1 + (Math.log10(col).to_i)) + "^"
+      line_indicator = "#{loc.line_number}>"
+
+      line = "#{line_indicator}#{loc.line}"
+      arrow = "-" * (col + line_indicator.size - 1) + "^"
 
       <<-MSG
       Syntax error at #{loc}:

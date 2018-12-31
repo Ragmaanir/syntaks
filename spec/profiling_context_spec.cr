@@ -1,4 +1,4 @@
-require "../../spec_helper"
+require "./spec_helper"
 
 describe Syntaks::EBNF::ProfilingContext do
   include Syntaks::EBNF

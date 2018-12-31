@@ -80,9 +80,9 @@ module Syntaks
             stats.success_count,
             stats.fail_count,
             stats.invocation_count,
-            1000*stats.self_time,
+            1000 * stats.self_time,
             1000 * stats.children_time,
-            1000*stats.total_time,
+            1000 * stats.total_time,
           }
         }
 

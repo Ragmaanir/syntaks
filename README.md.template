@@ -1,6 +1,6 @@
 # syntaks [![Build Status](https://travis-ci.org/Ragmaanir/syntaks.svg?branch=master)](https://travis-ci.org/Ragmaanir/syntaks)
 
-### Version 0.1.0
+### Version <%= Syntaks::VERSION %>
 
 A recursive descent parser generator framework.
 
@@ -13,34 +13,9 @@ require "syntaks"
 ## Example
 
 ```crystal
-class ListParser < Syntaks::Parser
-  rule(:root, Array(String), _os >> "(" >> _os & item_list & ")") { |v| v[3] }
-  rule(:item_list, Array(String), item >> ~item_list_tail) do |v|
-    if tail = v[1]
-      [v[0]] + tail
-    else
-      [v[0]]
-    end
-  end
+<%= File.read("spec/examples/list/parser.cr") %>
 
-  rule(:item_list_tail, Array(String), {"," & _os & item >> _os}) do |list|
-    list.map(&.[2])
-  end
-
-  rule(:item, String, id >> _os) do |t|
-    t[0]
-  end
-
-  rule(:id, String, /[_a-z][_a-z0-9]*/) { |r| r.content }
-
-  ignored(:_os, /\s*/)
-end
-
-
-res = ListParser.new.call("(v1,v2)").as(Success)
-
-assert res.value == ["v1", "v2"]
-
+<%= File.read("spec/examples/list/example.cr") %>
 ```
 
 ## Usage
@@ -68,44 +43,15 @@ rule(:root, Array(Int32), {"," >> int}) { |m| m.map(&.[1]) }
 When backtracking is disabled an parsing fails, a syntax error is produced:
 
 ```crystal
-class ErrorParser < Syntaks::Parser
-  rule(:root, String, "var " & /[1-9][0-9]*/) { |m| m[1].content }
-end
+<%= File.read("spec/examples/error/parser.cr") %>
 
-
-res = ErrorParser.new.call("var x").as(Error)
-
-assert res.message == <<-MSG
-Syntax error at 1:5:
-
-1>var x
-------^
-Rule: \"var \" & /[1-9][0-9]*/
-
-MSG
-
+<%= File.read("spec/examples/error/example.cr") %>
 ```
 
 A parse log can be printed to inspect the parsing process:
 
 ```crystal
-source = <<-SRC
-  def main
-    if true
-      x = 1
-      ⬤
-    end
-  end
-SRC
-
-ctx = LoggingContext.new(ParseLog.new(Source.new(source)))
-res = ExampleParsers::MethodParser.new.call(source, ctx).as(Error)
-
-log = ctx.parse_log.to_s
-
-# The syntax error entry marked with ⚡ should be on the line that contains ⬤
-assert(/⚡[^\n]+(29-33)[^\n]+⬤/ === log)
-
+<%= File.read("spec/examples/log/example.cr") %>
 ```
 
 ## TODO
