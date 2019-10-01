@@ -36,7 +36,7 @@ module Syntaks
         @rule ||= referenced_rule.call
       end
 
-      def simple?
+      def simple? : Bool
         true
       end
 

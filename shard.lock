@@ -1,5 +1,9 @@
 version: 1.0
 shards:
+  ameba:
+    github: veelenga/ameba
+    version: 0.10.1
+
   kontrakt:
     github: ragmaanir/kontrakt
     version: 0.3.0

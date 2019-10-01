@@ -13,12 +13,15 @@
     + number of fails/success
     + count invocations of each rule
 
-- lint/ameba
++ lint/ameba
+
 - Better README (TODO, CHANGELOG, embedded examples like in microtest)
 - Add bin/release
 - Specs for parse errors/failures and incomplete parses
-- Replace `Source#slow_lookup` invocations
+- Use Tokens instead of strings to delay reading from the source
+- Change SourceLocation/Interval to byte indices and replace `Source#slow_lookup` invocations
 - Change line/column to be zero-based in general and only add 1 for display purposes?
+- Use pool/array for allocation of State, SourceLocation, SourceInterval, Token
 - ProfilingContext: show max-depth
 - Packrat parsing
 - Print rule as EBNF string / syntaks-expression

@@ -52,13 +52,13 @@ module Syntaks
       def start_component_call(rule : Component, state : State)
         timings[rule.object_id] ||= Stats.new
         rule_names[rule.object_id] ||= rule.to_s
-        stack << RuleInvocation.new(rule.object_id, Time.now)
+        stack << RuleInvocation.new(rule.object_id, Time.local)
       end
 
       def end_component_call(rule : Component, state : State, result : Success | Failure | Error)
         inv = stack.pop
 
-        total = (Time.now - inv.started_at).to_f
+        total = (Time.local - inv.started_at).to_f
 
         timings[rule.object_id].total_time += total
         timings[rule.object_id].invocation_count += 1
@@ -90,7 +90,7 @@ module Syntaks
         io << "%32s : %5s %5s %5s : %6s %6s %6s" % {"name".colorize(:yellow), "succ", "fail", "inv", "self", "child", "total"}
         io << "\n"
 
-        timings.to_a.sort_by { |k, v| v.self_time }.each do |rule_id, stats|
+        timings.to_a.sort_by { |_k, v| v.self_time }.each do |rule_id, stats|
           print_stats.call(rule_id, stats)
 
           io << "\n"
@@ -100,7 +100,7 @@ module Syntaks
         io << "%32s : %5s %5s %5s : %6s %6s %6s" % {"name".colorize(:yellow), "succ", "fail", "inv", "self", "child", "total"}
         io << "\n"
 
-        timings.select { |k, v| /\A\w+\z/ === rule_names[k] }.to_a.sort_by { |k, v| v.self_time }.each do |rule_id, stats|
+        timings.select { |k, _v| /\A\w+\z/ === rule_names[k] }.to_a.sort_by { |_k, v| v.self_time }.each do |rule_id, stats|
           print_stats.call(rule_id, stats)
 
           io << "\n"

@@ -8,7 +8,7 @@ module Syntaks
         self.class.name.gsub("Syntaks::EBNF::", "").split("(").first
       end
 
-      abstract def simple? : Boolean
+      abstract def simple? : Bool
 
       def call(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
         ctx.start_component_call(self, state)

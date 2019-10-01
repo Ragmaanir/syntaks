@@ -1,3 +1,4 @@
 class ErrorParser < Syntaks::Parser
-  rule(:root, String, "var " & /[1-9][0-9]*/) { |m| m[1].content }
+  rule(:root, String, "var" >> space & /[a-z]+/) { |m| m[2].content }
+  ignored(:space, /\s+/)
 end

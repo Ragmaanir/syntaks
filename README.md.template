@@ -2,7 +2,7 @@
 
 ### Version <%= Syntaks::VERSION %>
 
-A recursive descent parser generator framework.
+A parser combinator framework.
 
 ## Usage
 
@@ -66,6 +66,7 @@ A parse log can be printed to inspect the parsing process:
 
 ## DONE
 
+- Use ameba
 - Generated `README.md` with examples
 - LoggingContext with a ParseLog
 - ProfilingContext

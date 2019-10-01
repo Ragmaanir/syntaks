@@ -41,7 +41,7 @@ describe Syntaks::Source do
   # -------------------- line_number_at_byte
   test "line_number_at_byte on empty source" do
     s = Source.new("")
-    # assert s.line_number_at_byte(0) == 0
+    assert s.line_number_at_byte(0) == 0
   end
 
   test "line_number_at_byte on source with no newline" do
@@ -81,7 +81,7 @@ describe Syntaks::Source do
   # -------------------- column_number_at_byte
   test "column_number_at_byte on empty source" do
     s = Source.new("")
-    # assert s.column_number_at_byte(0) == 0
+    assert s.column_number_at_byte(0) == 0
   end
 
   test "column_number_at_byte on source with no newline" do
@@ -119,7 +119,7 @@ describe Syntaks::Source do
   end
 
   test "line_start_at_byte" do
-    s = Source.new("")
+    # s = Source.new("")
 
     # assert s.line_start_at_byte(0) == 0
     # assert s.line_start_at_byte(1) == 0

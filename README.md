@@ -2,7 +2,7 @@
 
 ### Version 0.2.0
 
-A recursive descent parser generator framework.
+A parser combinator framework.
 
 ## Usage
 
@@ -69,18 +69,19 @@ When backtracking is disabled an parsing fails, a syntax error is produced:
 
 ```crystal
 class ErrorParser < Syntaks::Parser
-  rule(:root, String, "var " & /[1-9][0-9]*/) { |m| m[1].content }
+  rule(:root, String, "var" >> space & /[a-z]+/) { |m| m[2].content }
+  ignored(:space, /\s+/)
 end
 
 
-res = ErrorParser.new.call("var x").as(Error)
+res = ErrorParser.new.call("var     1337").as(Error)
 
 assert res.message == <<-MSG
-Syntax error at 1:5:
+Syntax error at 1:9:
 
-1>var x
-------^
-Rule: \"var \" & /[1-9][0-9]*/
+1>var     1337
+----------^
+Rule: "var" >> space & /[a-z]+/
 
 MSG
 
@@ -120,6 +121,7 @@ assert(/⚡[^\n]+(29-33)[^\n]+⬤/ === log)
 
 ## DONE
 
+- Use ameba
 - Generated `README.md` with examples
 - LoggingContext with a ParseLog
 - ProfilingContext

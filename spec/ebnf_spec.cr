@@ -53,7 +53,7 @@ describe Syntaks::EBNF::AbstractComponent do
     ebnf = build_ebnf(a >> b >> c)
     assert ebnf.to_s == "a >> b >> c"
 
-    ebnf = build_ebnf(a >> b | c)
+    # ebnf = build_ebnf(a >> b | c)
     # assert ebnf.to_s == "(a >> b) | c" # FIXME: parentheses
 
     ebnf = build_ebnf(a >> ~b >> ~(c | d))

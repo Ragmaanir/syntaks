@@ -24,7 +24,7 @@ module Syntaks
     end
 
     def message
-      at = end_state.at
+      # at = end_state.at
       loc = end_state.location
 
       col = loc.column_number

@@ -4,7 +4,7 @@ module Syntaks
   class ParseLog
     abstract struct Entry
       getter rule : EBNF::AbstractComponent
-      getter timestamp : Time = Time.now
+      getter timestamp : Time = Time.local
 
       def initialize(@rule)
       end
@@ -43,7 +43,7 @@ module Syntaks
 
     getter source : Source
     getter log : Array(Entry)
-    getter started_at : Time = Time.now
+    getter started_at : Time = Time.local
 
     def initialize(@source)
       @log = [] of Entry

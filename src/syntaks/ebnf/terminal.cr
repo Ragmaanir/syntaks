@@ -34,7 +34,7 @@ module Syntaks
         end
       end
 
-      def simple?
+      def simple? : Bool
         true
       end
 

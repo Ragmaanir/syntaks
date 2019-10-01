@@ -8,7 +8,13 @@ module Syntaks
       #@{{name.id}} : NonTerminal({{types}})?
       @{{name.id}} : Component({{types}})?
 
-      def {{name.id}}
+      {% if types.is_a?(TupleLiteral) %}
+        {% t = "Tuple(#{types.splat})" %}
+      {% else %}
+        {% t = types %}
+      {% end %}
+
+      def {{name.id}} : Component({{t.id}})
         rr = ->{ (build_ebnf({{sequence}})).as_component }
         @{{name.id}} ||= NonTerminal.build("{{name.id}}", rr) {{action}}
       end
