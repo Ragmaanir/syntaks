@@ -1,6 +1,6 @@
 name: syntaks
-version: 0.3.0
-crystal: 0.31.1
+version: 0.3.1
+crystal: 0.33.1
 license: MIT
 
 authors:
@@ -17,4 +17,4 @@ development_dependencies:
     branch: master
   ameba:
     github: veelenga/ameba
-    version: ~> 0.10
+    version: ~> 0.11

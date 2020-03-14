@@ -2,7 +2,7 @@ version: 1.0
 shards:
   ameba:
     github: veelenga/ameba
-    version: 0.10.1
+    version: 0.11.0
 
   kontrakt:
     github: ragmaanir/kontrakt
@@ -10,5 +10,5 @@ shards:
 
   microtest:
     github: ragmaanir/microtest
-    commit: 46199a9b32be12021b9018a7e7e068572b842c69
+    commit: ef72e49eff169887641d10e949a8ded929688b07
 
