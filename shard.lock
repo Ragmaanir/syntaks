@@ -1,14 +1,14 @@
-version: 1.0
+version: 2.0
 shards:
   ameba:
-    github: veelenga/ameba
-    version: 0.11.0
+    git: https://github.com/veelenga/ameba.git
+    version: 0.13.4
 
   kontrakt:
-    github: ragmaanir/kontrakt
+    git: https://github.com/ragmaanir/kontrakt.git
     version: 0.3.0
 
   microtest:
-    github: ragmaanir/microtest
-    commit: ef72e49eff169887641d10e949a8ded929688b07
+    git: https://github.com/ragmaanir/microtest.git
+    version: 1.2.3
 
