@@ -1,6 +1,6 @@
 name: syntaks
 version: 0.3.1
-crystal: 0.36.1
+crystal: '>= 0.35.1'
 license: MIT
 
 authors:
@@ -9,7 +9,7 @@ authors:
 dependencies:
   kontrakt:
     github: ragmaanir/kontrakt
-    version: ~> 0.2
+    version: ~> 0.4
 
 development_dependencies:
   microtest:
@@ -17,4 +17,4 @@ development_dependencies:
     version: ~> 1.2
   ameba:
     github: veelenga/ameba
-    version: ~> 0.13
+    version: ~> 0.14

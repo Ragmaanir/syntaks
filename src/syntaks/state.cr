@@ -30,9 +30,9 @@ module Syntaks
       SourceLocation.new(source, at)
     end
 
-    def interval(length : Int)
-      SourceInterval.new(source, at, length)
-    end
+    # def interval(length : Int)
+    #   SourceInterval.new(source, at, length)
+    # end
 
     def display
       # FIXME print current line unless parsing failed at newline or so

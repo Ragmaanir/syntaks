@@ -85,5 +85,10 @@ module Syntaks
     def slow_lookup(range : Range) : String
       @content[range]
     end
+
+    def inspect(io)
+      # Override to avoid large output
+      io << "#{self.class.name}"
+    end
   end
 end

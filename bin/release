@@ -1,7 +1,6 @@
 #!/usr/bin/env crystal
 
 require "yaml"
-require "../src/syntaks/version"
 
 def run(cmd, args = [] of String, msg = "Command failed: #{cmd} #{args.join(" ")}")
   puts "Running: #{cmd} #{args.join(" ")}"
@@ -19,14 +18,11 @@ end
 run("crystal", ["spec"])
 
 shard = YAML.parse(File.read("shard.yml"))
-versions_consistent = shard["version"] == Syntaks::VERSION
-
-raise "Please update shard.yml or version.cr" unless versions_consistent
 
 run("./bin/build")
 run("git", ["add", "-A"])
 
-version_name = "v#{Syntaks::VERSION}"
+version_name = "v#{shard["version"]}"
 run("git", ["commit", "-m", "Version #{version_name}"])
 run("git", ["tag", version_name])
 run("git", ["push"])

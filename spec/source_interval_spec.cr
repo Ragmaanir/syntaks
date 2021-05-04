@@ -3,7 +3,8 @@ require "./spec_helper"
 describe Syntaks::SourceInterval do
   test "nonempty lines" do
     s = Source.new("first\nsecond\nlast")
-    i1 = SourceInterval.new(s, 3, 4)
+    # i1 = SourceInterval.new(s, 3, 4)
+    i1 = SourceInterval.new(s, 3, "st\ns")
 
     assert(i1.from_location.line_number == 1)
     assert(i1.from_location.column_number == 4)
@@ -15,7 +16,8 @@ describe Syntaks::SourceInterval do
 
   test "empty lines" do
     s = Source.new("\n\n\n")
-    i1 = SourceInterval.new(s, 1, 2)
+    # i1 = SourceInterval.new(s, 1, 2)
+    i1 = SourceInterval.new(s, 1, "\n\n")
 
     assert(i1.from_location.line_number == 2)
     assert(i1.from_location.column_number == 1)

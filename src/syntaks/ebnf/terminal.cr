@@ -16,16 +16,11 @@ module Syntaks
       end
 
       def call_impl(state : State, ctx : Context = EmptyContext.new) : Success(V) | Failure | Error
-        parsed_text = case m = matcher
-                      when String
-                        state.peek?(m)
-                      when Regex
-                        state.peek?(Regex.new("#{m.source}"))
-                      end
+        parsed_text = state.peek?(matcher)
 
         if parsed_text
           end_state = state.advance(parsed_text.bytesize)
-          token = Token.new(state.interval(parsed_text.size))
+          token = Token.new(SourceInterval.new(state.source, state.at, parsed_text))
           value = @action.call(token)
 
           Success(V).new(state, end_state, value)

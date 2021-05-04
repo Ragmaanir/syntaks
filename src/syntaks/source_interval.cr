@@ -5,10 +5,26 @@ module Syntaks
     getter source : Source
     getter from : Int32
     getter length : Int32
+    getter content : String
+
+    # # interval does not include last character
+    # private def initialize(@source, @from, @length = 0)
+    #   precondition(from >= 0)
+    #   precondition(length >= 0)
+    #   precondition(to < source.size)
+    # end
+
+    # def initialize(@source, @from, content : String)
+    #   initialize(source, from, content.size)
+    #   @cached_content = content
+    # end
 
     # interval does not include last character
-    def initialize(@source, @from, @length = 0)
+    def initialize(@source, @from, @content : String)
       precondition(from >= 0)
+
+      @length = @content.size
+
       precondition(length >= 0)
       precondition(to < source.size)
     end
@@ -25,9 +41,13 @@ module Syntaks
       from + length - 1
     end
 
-    def content
-      source.slow_lookup(from..to)
-    end
+    # def content : String
+    #   @cached_content || begin
+    #     c = source.slow_lookup(from..to)
+    #     @cached_content = c
+    #     c
+    #   end
+    # end
 
     def to_s(io)
       io << "SourceInterval(#{from_location},#{to_location})"

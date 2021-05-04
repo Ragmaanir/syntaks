@@ -30,5 +30,17 @@ module Syntaks
     def call(state : State, ctx : Context = EmptyContext.new) # : Success | Failure | Error
       root.call(state, ctx)
     end
+
+    def profile(input : String | Source)
+      ctx = ProfilingContext.new
+      res = call(input, ctx)
+      puts ctx
+      res
+    end
+
+    def inspect(io)
+      # Override to avoid large output
+      io << "#{self.class.name}"
+    end
   end
 end

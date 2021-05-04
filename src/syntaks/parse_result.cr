@@ -6,6 +6,11 @@ module Syntaks
 
     def initialize(@state, @end_state, @value)
     end
+
+    def inspect(io)
+      # Override to avoid large output
+      io << "#{self.class.name}"
+    end
   end
 
   class Failure
@@ -13,6 +18,11 @@ module Syntaks
     getter rule : EBNF::AbstractComponent
 
     def initialize(@end_state, @rule)
+    end
+
+    def inspect(io)
+      # Override to avoid large output
+      io << "#{self.class.name}"
     end
   end
 
@@ -42,6 +52,11 @@ module Syntaks
       Rule: #{rule}
 
       MSG
+    end
+
+    def inspect(io)
+      # Override to avoid large output
+      io << "#{self.class.name}"
     end
   end
 end

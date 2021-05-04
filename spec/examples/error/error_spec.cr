@@ -1,4 +1,4 @@
-describe ListExample do
+describe ErrorExample do
   include Syntaks::EBNF
 
   {{`cat spec/examples/error/parser.cr`}}
