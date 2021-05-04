@@ -1,6 +1,7 @@
 #!/usr/bin/env crystal
 
 require "yaml"
+require "../src/syntaks/version"
 
 def run(cmd, args = [] of String, msg = "Command failed: #{cmd} #{args.join(" ")}")
   puts "Running: #{cmd} #{args.join(" ")}"
@@ -17,13 +18,12 @@ end
 
 run("crystal", ["spec"])
 
-shard = YAML.parse(File.read("shard.yml"))
-
+run("./bin/ameba")
 run("./bin/build")
-run("git", ["add", "-A"])
+run("git", ["add", "README.md"])
 
-version_name = "v#{shard["version"]}"
+version_name = "v#{Syntaks::VERSION}"
 run("git", ["commit", "-m", "Version #{version_name}"])
 run("git", ["tag", version_name])
 run("git", ["push"])
-run("git", ["push", "origin", version_name])
+run("git", ["push", "gh", version_name])

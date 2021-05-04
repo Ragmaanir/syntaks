@@ -1,4 +1,4 @@
-# syntaks [![Build Status](https://travis-ci.org/Ragmaanir/syntaks.svg?branch=master)](https://travis-ci.org/Ragmaanir/syntaks)
+# syntaks [![Crystal CI](https://github.com/Ragmaanir/syntaks/actions/workflows/crystal.yml/badge.svg)](https://github.com/Ragmaanir/syntaks/actions/workflows/crystal.yml)
 
 ### Version 0.3.1
 
