@@ -1,3 +1,5 @@
+require "../../spec_helper"
+
 describe ListExample do
   include Syntaks::EBNF
 

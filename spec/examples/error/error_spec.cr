@@ -1,3 +1,5 @@
+require "../../spec_helper"
+
 describe ErrorExample do
   include Syntaks::EBNF
 

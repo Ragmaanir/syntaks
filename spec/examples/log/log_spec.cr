@@ -1,3 +1,5 @@
+require "../../spec_helper"
+
 describe LogExample do
   include Syntaks::EBNF
 
