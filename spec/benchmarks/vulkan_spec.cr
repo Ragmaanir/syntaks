@@ -1,8 +1,6 @@
-require "./benchmarks_helper"
+require "../spec_helper"
 
 describe Vulkan do
-  include BenchmarkSpec
-
   # TODO g++ vulkan.h -E > vulkan.expanded.h
 
   # class LogCtx < Syntaks::EBNF::Context
@@ -60,7 +58,7 @@ describe Vulkan do
     rule(:root, Array(Node), definitions)
 
     rule(:definitions, Array(Node), {definition}) do |t|
-      t.flatten.reject(&.is_a?(EmptyNode))
+      t.flatten.reject(EmptyNode)
     end
 
     rule(:definition, Node | Array(Node), _os >> (empty_line | typedef | func | extern_c | preprocessor | inline_comment | multiline_comment)) do |t|
@@ -118,9 +116,7 @@ describe Vulkan do
 
     parser = HeaderParser.new
 
-    benchmark("vulkan") do
-      res = parser.call(source)
-      assert res.is_a?(Success)
-    end
+    res = parser.call(source)
+    assert res.is_a?(Success)
   end
 end
