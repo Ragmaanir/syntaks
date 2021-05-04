@@ -98,7 +98,7 @@ describe Vulkan do
 
     rule(:arr_spec, Nil, "[" >> /\d+/ >> "]") { |_| nil }
 
-    rule(:id, String, /[\w_][\w_0-9]*/) { |t| t.content }
+    rule(:id, String, /[\w_][\w_0-9]*/, &.content)
     rule(:type_spec, String, primitive_spec | complicated_spec)
 
     rule(:primitive_spec, String, primitive_type >> _os >> {primitive_type >> _os}) { "x" }

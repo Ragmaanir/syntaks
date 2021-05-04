@@ -16,7 +16,7 @@ class ListParser < Syntaks::Parser
     t[0]
   end
 
-  rule(:id, String, /[_a-z][_a-z0-9]*/) { |r| r.content }
+  rule(:id, String, /[_a-z][_a-z0-9]*/, &.content)
 
   ignored(:_os, /\s*/)
 end

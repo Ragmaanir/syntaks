@@ -30,7 +30,7 @@ module ExampleParsers
     rule(:assign_stat, Stat, id >> _os >> "=" & _os >> id) { |t| Stat.new(t[0]) }
     rule(:call_stat, Stat, id >> "(" & _os >> ")") { |t| Stat.new(t[0]) }
 
-    rule(:id, String, /[_a-z][_a-z0-9]*/) { |r| r.content }
+    rule(:id, String, /[_a-z][_a-z0-9]*/, &.content)
 
     ignored(:_os, /\s*/)
     ignored(:_s, /\s+/)

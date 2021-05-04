@@ -65,7 +65,7 @@ describe RepResults do
 
   class Parser < Syntaks::Parser
     rule(:root, Array(String), {str})
-    rule(:str, String, "a") { |t| t.content }
+    rule(:str, String, "a", &.content)
   end
 
   test "nested sequence" do

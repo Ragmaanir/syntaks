@@ -9,10 +9,10 @@ describe Syntaks::Parser do
 
   test "acceptance" do
     r = Parser.new.call("a=5;").as Success
-    assert r.value.map { |v| v.content } == {"a", "=", "5", ";"}
+    assert r.value.map(&.content) == {"a", "=", "5", ";"}
 
     r = Parser.new.call("number=1337;").as Success
-    assert r.value.map { |v| v.content } == {"number", "=", "1337", ";"}
+    assert r.value.map(&.content) == {"number", "=", "1337", ";"}
   end
 end
 
@@ -22,8 +22,8 @@ describe ActionParser do
       {v[0], v[2]}
     end
 
-    rule(id, String, /\w+/) { |t| t.content }
-    rule(value, Int32, /\d+/) { |t| t.content.to_i }
+    rule(id, String, /\w+/, &.content)
+    rule(value, Int32, /\d+/, &.content.to_i)
   end
 
   test "AST" do
