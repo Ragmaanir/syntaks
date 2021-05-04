@@ -1,6 +1,6 @@
 # syntaks [![Crystal CI](https://github.com/Ragmaanir/syntaks/actions/workflows/crystal.yml/badge.svg)](https://github.com/Ragmaanir/syntaks/actions/workflows/crystal.yml)
 
-### Version 0.3.1
+### Version 0.3.2
 
 A parser combinator framework.
 
@@ -31,7 +31,7 @@ class ListParser < Syntaks::Parser
     t[0]
   end
 
-  rule(:id, String, /[_a-z][_a-z0-9]*/) { |r| r.content }
+  rule(:id, String, /[_a-z][_a-z0-9]*/, &.content)
 
   ignored(:_os, /\s*/)
 end
